@@ -40,3 +40,6 @@ research/
 
 # Plugins (managed by Claude Code, not manually)
 plugins/
+
+# Git worktrees (isolated workspaces, not tracked)
+.worktrees/
