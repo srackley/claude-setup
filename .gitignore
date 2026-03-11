@@ -1,0 +1,42 @@
+# Per-project memory (machine-local, large)
+projects/
+
+# Session / runtime data
+history.jsonl
+*.jsonl
+session-notes/
+todos/
+tasks/
+session-env/
+shell-snapshots/
+paste-cache/
+file-history/
+
+# Claude internals / cache
+.claude/
+settings.local.json
+mcp-needs-auth-cache.json
+cache/
+backups/
+debug/
+logs/
+statsig/
+stats-cache.json
+usage-data/
+telemetry/
+ide/
+chrome/
+downloads/
+reviews/
+plans/
+
+# Runtime generated files
+*.lock
+
+# Personal / one-off notes
+hooks/tests/
+amplitude-*.md
+research/
+
+# Plugins (managed by Claude Code, not manually)
+plugins/

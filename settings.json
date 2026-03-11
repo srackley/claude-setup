@@ -1,0 +1,360 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(AWS_PROFILE=wanderu-dev task dev *)",
+      "Bash(asdf install *)",
+      "Bash(asdf latest *)",
+      "Bash(asdf list *)",
+      "Bash(bkl *)",
+      "Bash(claude mcp list)",
+      "Bash(claude mcp *)",
+      "Bash(cloudflared access login *)",
+      "Bash(curl *)",
+      "Bash(export AWS_PROFILE=wanderu-dev *)",
+      "Bash(export BUILD_TYPE=\"local\")",
+      "Bash(export GLOBAL_ENV=\"local\")",
+      "Bash(export SERVICE_VERSION=\"0.0.1-local\")",
+      "Bash(find *)",
+      "Bash(gh api *)",
+      "Bash(gh auth login *)",
+      "Bash(gh issue *)",
+      "Bash(gh pr checks *)",
+      "Bash(gh pr comment *)",
+      "Bash(gh pr diff *)",
+      "Bash(gh pr list *)",
+      "Bash(gh pr merge *)",
+      "Bash(gh pr review *)",
+      "Bash(gh pr view *)",
+      "Bash(gh repo view *)",
+      "Bash(gh run list *)",
+      "Bash(gh run view *)",
+      "Bash(gh run watch *)",
+      "Bash(gh search *)",
+      "Bash(gh release list *)",
+      "Bash(gh release view *)",
+      "Bash(gh release download *)",
+      "Bash(gh workflow list *)",
+      "Bash(gh workflow view *)",
+      "Bash(gh label list *)",
+      "Bash(gh milestone list *)",
+      "Bash(gh variable list *)",
+      "Bash(gh secret list *)",
+      "Bash(gh environment list *)",
+      "Bash(gh repo list *)",
+      "Bash(gh status *)",
+      "Bash(gh codespace list *)",
+      "Bash(gh extension list *)",
+      "Bash(gh org list *)",
+      "Bash(gh team list *)",
+      "Bash(git -C ~/Wanderu/canopy *)",
+      "Bash(git -C ~/Wanderu/ui-react *)",
+      "Bash(git -C ~/Wanderu/nexus *)",
+      "Bash(git -C ~/polish-stash *)",
+      "Bash(git add *)",
+      "Bash(git branch *)",
+      "Bash(git check-ignore *)",
+      "Bash(git checkout *)",
+      "Bash(git commit-graph *)",
+      "Bash(git config *)",
+      "Bash(git diff *)",
+      "Bash(git fetch *)",
+      "Bash(git log *)",
+      "Bash(git ls-tree *)",
+      "Bash(git merge *)",
+      "Bash(git pull *)",
+      "Bash(git push *)",
+      "Bash(git rebase *)",
+      "Bash(git remote *)",
+      "Bash(git reset *)",
+      "Bash(git restore *)",
+      "Bash(git rev-list *)",
+      "Bash(git rev-parse *)",
+      "Bash(git show *)",
+      "Bash(git stash *)",
+      "Bash(git status *)",
+      "Bash(git worktree *)",
+      "Bash(cd ~/Wanderu/canopy *)",
+      "Bash(cd ~/Wanderu/ui-react *)",
+      "Bash(cd ~/Wanderu/nexus *)",
+      "Bash(cd ~/polish-stash *)",
+      "Bash(actionlint *)",
+      "Bash(basename *)",
+      "Bash(bats *)",
+      "Bash(cat *)",
+      "Bash(chmod *)",
+      "Bash(cp *)",
+      "Bash(cross-env *)",
+      "Bash(cut *)",
+      "Bash(date *)",
+      "Bash(diff *)",
+      "Bash(dirname *)",
+      "Bash(echo *)",
+      "Bash(env *)",
+      "Bash(file *)",
+      "Bash(grep *)",
+      "Bash(jq *)",
+      "Bash(mkdir *)",
+      "Bash(mv *)",
+      "Bash(pgrep *)",
+      "Bash(ps *)",
+      "Bash(readlink *)",
+      "Bash(realpath *)",
+      "Bash(pwd *)",
+      "Bash(sed *)",
+      "Bash(sort *)",
+      "Bash(stat *)",
+      "Bash(sw_vers *)",
+      "Bash(tee *)",
+      "Bash(top *)",
+      "Bash(touch *)",
+      "Bash(tr *)",
+      "Bash(uniq *)",
+      "Bash(uname *)",
+      "Bash(which *)",
+      "Bash(xargs *)",
+      "Bash(yarn lint *)",
+      "Bash(ls *)",
+      "Bash(node *)",
+      "Bash(pnpm --version *)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm next *)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm audit *)",
+      "Bash(pnpm build *)",
+      "Bash(pnpm eslint *)",
+      "Bash(pnpm exec eslint *)",
+      "Bash(pnpm exec prettier *)",
+      "Bash(pnpm prettier *)",
+      "Bash(pnpm tsc *)",
+      "Bash(pnpm exec tsc *)",
+      "Bash(pnpm exec vitest *)",
+      "Bash(pnpm lint:fix *)",
+      "Bash(pnpm list *)",
+      "Bash(pnpm outdated *)",
+      "Bash(pnpm run *)",
+      "Bash(pnpm why *)",
+      "Bash(pnpm storybook:test *)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm view *)",
+      "Bash(pnpm vitest *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(task *)",
+      "Bash(*/.asdf/shims/task *)",
+      "Bash(NODE_ICU_DATA=node_modules/full-icu NODE_ENV=test TZ='America/New_York' scripts/test-with-cleanup.sh *)",
+      "Bash(npx jest *)",
+      "Bash(npx tsc *)",
+      "Bash(npx eslint *)",
+      "Bash(npx prettier *)",
+      "Bash(npx vitest *)",
+      "Bash(npx playwright *)",
+      "Bash(pnpm exec playwright *)",
+      "Bash(pnpm exec supabase *)",
+      "Bash(wc *)",
+      "WebFetch",
+      "WebSearch",
+      "mcp__figma__*",
+      "mcp__figma-desktop__*",
+      "mcp__linear-server__*",
+      "mcp__playwright__*",
+      "mcp__playwright-test__*",
+      "mcp__plugin_context7_context7__*",
+      "mcp__plugin_playwright_playwright__*",
+      "mcp__wayfinder__*",
+      "Read(~/Wanderu/ui-react/**)",
+      "Read(~/Wanderu/nexus/**)",
+      "Read(~/Wanderu/canopy/**)",
+      "Read(~/polish-stash/**)",
+      "Edit(~/Wanderu/ui-react/**)",
+      "Edit(~/Wanderu/nexus/**)",
+      "Edit(~/Wanderu/canopy/**)",
+      "Edit(~/polish-stash/**)",
+      "Write(~/Wanderu/ui-react/**)",
+      "Write(~/Wanderu/nexus/**)",
+      "Write(~/Wanderu/canopy/**)",
+      "Write(~/polish-stash/**)",
+      "Edit(//tmp/**)",
+      "Read(//tmp/**)",
+      "Read(//private/tmp/**)",
+      "Read(~/.claude/**)",
+      "Edit(~/.claude/session-notes/**)",
+      "Edit(~/.claude/projects/**/memory/**)",
+      "Edit(~/.claude/logs/**)",
+      "Write(~/.claude/session-notes/**)",
+      "Write(~/.claude/projects/**/memory/**)",
+      "Write(~/.claude/logs/**)",
+      "Edit(~/.claude/reviews/**)",
+      "Write(~/.claude/reviews/**)",
+      "Write(//tmp/**)"
+    ]
+  },
+  "model": "sonnet",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/session-start.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/commit-gate.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/enforce-permissions.py"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/prefer-task.py"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/pr-gate.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/enforce-permissions.py"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/no-edit-on-main.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/skill-enforcement.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tdd-state-machine.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/session-notes-format.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/enforce-permissions.py"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/no-edit-on-main.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/skill-enforcement.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tdd-state-machine.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/session-notes-format.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/sensitive-file-warning.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/subagent-context.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/skill-reminder.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tdd-state-advance.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tdd-state-advance.sh"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/pre-compact.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline-command.sh"
+  },
+  "enabledPlugins": {
+    "context7@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "hookify@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": false,
+    "superpowers@superpowers-marketplace": true,
+    "supabase@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": false,
+    "ralph-loop@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "wayfinder@wayfinder": true
+  },
+  "editor": "windsurf"
+}
