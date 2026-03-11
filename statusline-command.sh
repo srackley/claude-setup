@@ -3,9 +3,9 @@
 # Read JSON input from stdin and parse with python (avoids jq dependency)
 input=$(cat)
 
-eval "$(python3 -c "
+eval "$(echo "$input" | python3 -c "
 import json, sys
-data = json.loads('''$input''')
+data = json.loads(sys.stdin.read())
 model_id = data.get('model', {}).get('id', '')
 model = data.get('model', {}).get('display_name', 'Unknown')
 cwd = data.get('workspace', {}).get('current_dir', data.get('cwd', ''))
