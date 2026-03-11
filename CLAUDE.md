@@ -37,8 +37,8 @@ Never run unbounded-output commands in foreground (`gh run watch`, `tail -f`). B
 
 ## Git Commands
 Never use `cd <path> && git <cmd>`. Always use `git -C <path> <cmd>` instead. This avoids the approval prompt triggered by compound cd+git commands. Examples:
-- `git -C ~/Wanderu/canopy log --oneline origin/branch..origin/main`
-- `git -C ~/Wanderu/ui-react fetch origin`
+- `git -C ~/projects/myrepo log --oneline origin/branch..origin/main`
+- `git -C ~/projects/myrepo fetch origin`
 
 ## Workflow Preferences
 - **Minimal mocking**: Real instances, DI, test behavior not implementation.
