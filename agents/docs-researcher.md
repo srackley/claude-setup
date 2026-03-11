@@ -84,20 +84,31 @@ Query official documentation sources in this order:
 2. **npm registry** (version-specific): WebFetch `https://registry.npmjs.org/{package}/{version}` for the README specific to the installed version.
 3. **Official docs site** (via WebFetch): If context7 doesn't have it or seems incomplete, fetch the library's official documentation site.
 
-## Step 5: Community Validation (Only When Needed)
+## Step 5: Community Validation
 
-Only perform this step for questions about:
+### Always: Search for contradicting evidence on actionable answers
+
+If your answer will lead the user to take action (run a command, change config, modify code, adopt a pattern), you MUST search for contradicting evidence before concluding — regardless of question type. Official docs can be wrong, misleading, or describe display-only behavior while the actual behavior differs.
+
+Search for:
+- GitHub issues reporting the feature doesn't work as documented
+- Bug reports or "this is broken" threads
+- "not planned" or "won't fix" issue closures
+- Community posts saying "actually this does X not Y"
+
+Use WebSearch: `"{package}" "{feature name}" "doesn't work" OR "not working" OR "broken" site:github.com`
+
+If you find contradicting evidence, it takes priority over official docs — report both and flag the discrepancy prominently.
+
+### Also: For best practices questions
+
+For questions about:
 - Best practices and recommended patterns
 - "What's the right way to do X"
 - Choosing between multiple valid approaches
 - Understanding tradeoffs
 
-Skip this step entirely for straightforward API lookups, import paths, or "does this exist" questions.
-
-When needed:
-- WebSearch for GitHub issues, discussions, and community posts
-- Look for consensus, not just a single opinion
-- Cross-reference community recommendations with official docs — never present a blog post as the sole authority
+Also search GitHub issues, discussions, and community posts for consensus. Cross-reference with official docs — never present a blog post as the sole authority.
 
 ## Step 6: Cross-Validation
 
