@@ -152,6 +152,10 @@ if [[ -x "$extractor" ]]; then
         >> "$log_dir/compliance-review.jsonl" 2>/dev/null || true
 fi
 
+# Soft reminder: prompt Claude to consider updating related GitHub issues.
+# Non-blocking — this is a nudge, not a gate.
+echo "REMINDER: Post a progress comment on any GitHub issues related to this branch — what was done, what was discovered, current status. If there are no related issues, ignore this." >&2
+
 # All checks passed — auto-approve (no manual permission prompt)
 echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","permissionDecisionReason":"All commit requirements verified: finishing-work, session-notes"}}'
 exit 0
