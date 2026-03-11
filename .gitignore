@@ -14,7 +14,7 @@ file-history/
 
 # Claude internals / cache
 .claude/
-settings.local.json
+*.local.*
 mcp-needs-auth-cache.json
 cache/
 backups/
