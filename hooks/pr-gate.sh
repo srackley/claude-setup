@@ -9,6 +9,11 @@
 # On failure: exits 2 + stderr block message with exact filename Claude must write
 #
 # The token file is NOT deleted on success — it's a reference artifact.
+#
+# Known limitation: transcript JSONL schema is not a public API. If Claude Code
+# changes the format, this hook may start blocking with confusing errors or
+# silently stop enforcing. Smoke-test periodically by verifying a blocked
+# attempt produces the expected error message.
 
 set -euo pipefail
 
