@@ -152,9 +152,47 @@ if [[ -x "$extractor" ]]; then
         >> "$log_dir/compliance-review.jsonl" 2>/dev/null || true
 fi
 
-# Soft reminder: prompt Claude to consider updating related GitHub issues.
-# Non-blocking — this is a nudge, not a gate.
-echo "REMINDER: Post a progress comment on any GitHub issues related to this branch — what was done, what was discovered, current status. If there are no related issues, ignore this." >&2
+# --- Phase 3: GitHub issue update check ---
+# Require evidence that Claude posted a progress comment on a related issue,
+# OR that Claude explicitly declared no issues apply for this branch.
+#
+# Two valid states:
+#   1. gh issue comment command found in transcript since last commit
+#   2. /tmp/no-issues-<session_id>.txt exists (escape hatch with reason)
+
+no_issues_file="/tmp/no-issues-${session_id}.txt"
+
+if [[ ! -f "$no_issues_file" ]]; then
+    # Re-open search_file region (may have been cleaned up above)
+    if [[ -n "$last_commit_line" ]]; then
+        search_file_issues=$(mktemp /tmp/claude-commit-gate-issues-XXXXXX)
+        tail -n +"$((last_commit_line + 1))" "$transcript_path" > "$search_file_issues"
+    else
+        search_file_issues="$transcript_path"
+    fi
+
+    issue_comment_found=$(grep -E '"command"[[:space:]]*:[[:space:]]*"[^"]*gh issue comment[^"]*"' "$search_file_issues" 2>/dev/null || true)
+
+    if [[ -n "$last_commit_line" ]]; then
+        rm -f "$search_file_issues"
+    fi
+
+    if [[ -z "$issue_comment_found" ]]; then
+        cat >&2 << EOF
+BLOCKED: No GitHub issue update found before this commit.
+
+Before committing, either:
+1. Post a progress comment on related GitHub issues:
+     gh issue comment <number> --body "Progress: <what was done/discovered>"
+   Then retry the commit.
+
+2. If there are genuinely no related issues, declare it:
+     echo "no related issues: <reason>" > /tmp/no-issues-${session_id}.txt
+   Then retry the commit.
+EOF
+        exit 2
+    fi
+fi
 
 # All checks passed — auto-approve (no manual permission prompt)
 echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","permissionDecisionReason":"All commit requirements verified: finishing-work, session-notes"}}'
