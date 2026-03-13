@@ -1,9 +1,11 @@
 #!/bin/bash
-# PreToolUse hook on Bash — blocks gh pr create without a session-scoped verification artifact.
+# PreToolUse hook on Bash — blocks gh pr create until all conditions are met.
 #
-# Two conditions must both be true before gh pr create is allowed:
+# Four conditions must all be true before gh pr create is allowed:
 # 1. /tmp/pr-verification-<session_id>.md exists with > 200 chars of content
 # 2. The current transcript shows Claude wrote that exact file in this session
+# 3. The reviewing-code skill was invoked this session
+# 4. A gh issue comment was posted OR no-issues escape hatch declared
 #
 # On success: outputs permissionDecision "allow" (bypasses allowlist check)
 # On failure: exits 2 + stderr block message with exact filename Claude must write
@@ -115,6 +117,35 @@ EOF
     exit 2
 fi
 
+# --- Condition 4: GitHub issue comment must have been posted this session ---
+# Require evidence that Claude posted a progress comment on a related issue,
+# OR that Claude explicitly declared no issues apply for this branch.
+#
+# Two valid states:
+#   1. gh issue comment command found in transcript this session
+#   2. /tmp/no-issues-<session_id>.txt exists (escape hatch with reason)
+no_issues_file="/tmp/no-issues-${session_id}.txt"
+
+if [[ ! -f "$no_issues_file" ]]; then
+    issue_comment_found=$(grep -E '"command"[[:space:]]*:[[:space:]]*"[^"]*gh issue comment[^"]*"' "$transcript_path" 2>/dev/null || true)
+
+    if [[ -z "$issue_comment_found" ]]; then
+        cat >&2 << EOF
+BLOCKED: No GitHub issue update found before PR creation.
+
+Before running gh pr create, either:
+1. Post a progress comment on the related GitHub issue:
+     gh issue comment <number> --body "Progress: <what was done>"
+   Then retry gh pr create.
+
+2. If there are genuinely no related issues, declare it:
+     echo "no related issues: <reason>" > /tmp/no-issues-${session_id}.txt
+   Then retry gh pr create.
+EOF
+        exit 2
+    fi
+fi
+
 # --- All conditions met — allow ---
-echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","permissionDecisionReason":"PR gate passed: reviewing-code invoked, verification table written and signed off"}}'
+echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","permissionDecisionReason":"PR gate passed: reviewing-code invoked, verification table written and signed off, issue comment posted or no-issues declared"}}'
 exit 0
