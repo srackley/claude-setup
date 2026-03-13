@@ -286,6 +286,10 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/subagent-context.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/docs-researcher-guard.sh"
           }
         ]
       }

@@ -32,6 +32,8 @@ Hook-enforced skills (TDD, creating-component, storybook-stories, writing-skills
 ## Documentation Research
 Use `docs-researcher` agent for third-party library questions — don't trust training data.
 
+Before dispatching `docs-researcher`, grep `~/.claude/research/` for the topic. If a recent relevant file exists, read it first — only dispatch if the question isn't covered or findings are stale.
+
 ## Bash Safety
 Never run unbounded-output commands in foreground (`gh run watch`, `tail -f`). Background them and tail the log.
 
