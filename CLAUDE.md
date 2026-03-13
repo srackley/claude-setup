@@ -48,6 +48,7 @@ Never use `cd <path> && git <cmd>`. Always use `git -C <path> <cmd>` instead. Th
 - **Fix lint warnings**: In files you touch.
 
 ## Key Rules
+- **Surface structural problems, don't silently work around them.** If you notice a real design issue while working around it (hardcoded path, test gap, fragile assumption), flag it as a suggested task before continuing. Quiet workarounds hide problems; the user should decide whether to fix or accept.
 - **Verify claims with evidence.** Grep the codebase, read the full function, check docs. Never accept subagent output at face value. Before presenting any actionable recommendation from an agent, independently verify the key behavioral claim. State what you verified and how.
 - **Fix everything you find.** Never use "pre-existing" or "not my PR" to skip. All code in the branch is your responsibility.
 - **Never disable lint rules without asking.** Fix the underlying code.
