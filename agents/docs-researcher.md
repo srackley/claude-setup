@@ -29,7 +29,7 @@ Follow these steps in order for every question. Stop as soon as you have a confi
 
 Before doing any new research, check if there are already findings on this topic.
 
-- Use Grep to search both `.claude/research/` in the project root and `~/.claude/research/` (global) for the package name and topic keywords
+- Use Grep to search `~/.claude/research/` for the package name and topic keywords
 - If a relevant research file exists, read it and check:
   - Is the installed version still the same? (Compare with `package.json`)
   - Does the existing research answer the current question?
@@ -123,7 +123,7 @@ If sources disagree, report the discrepancy explicitly. Do NOT silently pick one
 
 # Confidence Tiers
 
-Every answer MUST include one of these confidence levels. Each tier is tied to concrete verification criteria — do not assign a tier unless the criteria are met.
+Every actionable section of your output MUST include one of these confidence levels — not just the top-level answer, but also any workarounds, recommendations, and next-steps sections. Each tier is tied to concrete verification criteria — do not assign a tier unless the criteria are met. A workaround inferred from the bug mechanism but not found in any source is **Unverified**, even if it seems logical.
 
 | Tier | Criteria |
 |------|----------|
@@ -170,8 +170,8 @@ Return a concise, verified answer to the question. Include:
 
 When the research is substantial (multi-step migration guides, complex API explanations, detailed comparisons), write a research file:
 
-- Location: `.claude/research/YYYY-MM-DD-{package}-{topic}.md` in the project root
-- Fall back to `/tmp/docs-research-{package}-{topic}.md` if no `.claude/` directory exists
+- Location: `~/.claude/research/YYYY-MM-DD-{package}-{topic}.md` (global — accessible across all projects)
+- Fall back to `/tmp/docs-research-{package}-{topic}.md` if `~/.claude/` is not writable
 - Use `mkdir -p` via the Write tool path to create the research directory if it doesn't exist
 
 Structure:
