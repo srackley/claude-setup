@@ -47,6 +47,8 @@ digraph review_loop {
 
 The orchestrator launches all 5 pr-review-toolkit agents in parallel and returns deduplicated findings.
 
+**Docs-heavy diffs (primarily `.md` files):** The diff contains no source code, so `comment-analyzer` can only surface-scan without knowing what to verify against. Include the key source files the docs reference in the orchestrator prompt — not just the diff. Example: "These docs make claims about `clientApiService.ts`, `AccountService.js`, and `configureStore.js` — verify behavioral descriptions against those files." Without this, agents check that referenced functions exist but not that the behavioral descriptions are accurate.
+
 Re-run every round. Fixes can cascade across domains.
 
 **Step 3: Deduplicate.** Multiple agents often flag the same code location. Merge overlapping findings into one, keeping the most specific diagnosis.

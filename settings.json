@@ -1,5 +1,9 @@
 {
   "permissions": {
+    "deny": [
+      "Edit(**/*.po)",
+      "Write(**/*.po)"
+    ],
     "allow": [
       "Bash(AWS_PROFILE=wanderu-dev task dev *)",
       "Bash(asdf install *)",
