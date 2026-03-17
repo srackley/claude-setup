@@ -1,45 +1,23 @@
-# Per-project memory (machine-local, large)
-projects/
+# Ignore everything by default — only explicitly allowed files are tracked.
+*
 
-# Session / runtime data
-history.jsonl
-*.jsonl
-session-notes/
-todos/
-tasks/
-session-env/
-shell-snapshots/
-paste-cache/
-file-history/
+# Root files
+!.gitignore
+!CLAUDE.md
+!mcp.json
+!settings.json
+!statusline-command.sh
 
-# Claude internals / cache
-.claude/
-*.local.*
-mcp-needs-auth-cache.json
-cache/
-backups/
-debug/
-logs/
-statsig/
-stats-cache.json
-usage-data/
-telemetry/
-ide/
-chrome/
-downloads/
-reviews/
-plans/
+# Directories (must un-ignore dir + contents separately)
+!agents/
+!agents/**
+!hooks/
+!hooks/**
+!rules/
+!rules/**
+!skills/
+!skills/**
 
-# Runtime generated files
-*.lock
-
-# Personal / one-off notes
+# Re-ignore within allowed dirs
+**/.DS_Store
 hooks/tests/
-amplitude-*.md
-research/
-
-# Plugins (managed by Claude Code, not manually)
-plugins/
-
-# Git worktrees (isolated workspaces, not tracked)
-.worktrees/
