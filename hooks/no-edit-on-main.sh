@@ -20,9 +20,15 @@ if [[ -z "$file_path" ]]; then
     exit 0
 fi
 
-# Allow edits to global config (not in any git repo's working tree)
+# For ~/.claude/ files: allow known transient/runtime paths, block everything else.
+# New committed files are protected by default (least-privilege).
 if [[ "$file_path" == "$HOME/.claude/"* ]]; then
-    exit 0
+    case "$file_path" in
+        */projects/*|*/plugins/*|*/session-notes/*|*/logs/*|*/reviews/*|*/research/*|*/memory/*|*/shell-snapshots/*|*/todos/*|*/statsig/*|*/.worktrees/*)
+            exit 0
+            ;;
+    esac
+    # Not a known transient path — fall through to branch check
 fi
 
 # Resolve the directory containing the file being edited.
