@@ -20,18 +20,15 @@ if [[ -z "$file_path" ]]; then
     exit 0
 fi
 
-# For ~/.claude/ files: block only committed source paths.
-# Everything else (todos, plugins, shell-snapshots, projects, etc.) is transient/runtime.
+# For ~/.claude/ files: allow known transient/runtime paths, block everything else.
+# New committed files are protected by default (least-privilege).
 if [[ "$file_path" == "$HOME/.claude/"* ]]; then
     case "$file_path" in
-        */hooks/*|*/skills/*|*/agents/*|*/tests/*)
-            ;; # fall through to branch check
-        */CLAUDE.md|*/settings.json|*/statusline-command.sh)
-            ;; # fall through to branch check
-        *)
+        */projects/*|*/plugins/*|*/session-notes/*|*/logs/*|*/reviews/*|*/research/*|*/memory/*|*/shell-snapshots/*|*/todos/*|*/statsig/*|*/.worktrees/*)
             exit 0
             ;;
     esac
+    # Not a known transient path — fall through to branch check
 fi
 
 # Resolve the directory containing the file being edited.
