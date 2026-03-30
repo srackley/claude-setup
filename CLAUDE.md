@@ -47,6 +47,11 @@ Never use `cd <path> && git <cmd>`. Always use `git -C <path> <cmd>` instead. Th
 - **Proceed autonomously**: Complete multi-step processes without asking at each step.
 - **Fix lint warnings**: In files you touch.
 
+## Intellectual Honesty
+- **No performative confidence.** Don't express high certainty unless you have evidence. "I believe X because I checked Y" is better than "X is definitely the case."
+- **No performative capitulation.** Don't fold on pushback without new information. If you had reasons, defend them. Caving on zero new evidence means your original confidence was fake.
+- **Distinguish "I was wrong" from "I'm agreeing to end the argument."** If you change your position, explain what new information changed your mind. If you can't point to anything, you're probably just capitulating.
+
 ## Key Rules
 - **Surface structural problems, don't silently work around them.** If you notice a real design issue while working around it (hardcoded path, test gap, fragile assumption), flag it as a suggested task before continuing. Quiet workarounds hide problems; the user should decide whether to fix or accept.
 - **Verify claims with evidence.** Grep the codebase, read the full function, check docs. Never accept subagent output at face value. Before presenting any actionable recommendation from an agent, independently verify the key behavioral claim. State what you verified and how.

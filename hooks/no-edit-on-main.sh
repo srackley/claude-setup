@@ -20,9 +20,18 @@ if [[ -z "$file_path" ]]; then
     exit 0
 fi
 
-# Allow edits to global config (not in any git repo's working tree)
+# For ~/.claude/ files: block only committed source paths.
+# Everything else (todos, plugins, shell-snapshots, projects, etc.) is transient/runtime.
 if [[ "$file_path" == "$HOME/.claude/"* ]]; then
-    exit 0
+    case "$file_path" in
+        */hooks/*|*/skills/*|*/agents/*|*/tests/*)
+            ;; # fall through to branch check
+        */CLAUDE.md|*/settings.json|*/statusline-command.sh)
+            ;; # fall through to branch check
+        *)
+            exit 0
+            ;;
+    esac
 fi
 
 # Resolve the directory containing the file being edited.
