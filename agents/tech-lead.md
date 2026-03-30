@@ -131,4 +131,4 @@ Read the project structure, key entry points, data flow, and dependencies. Produ
 - Distinguish "must fix before deploy" from "should fix eventually" — mixing them up erodes trust.
 - When the answer is "ship it", say so with confidence. Hesitation without reason is as bad as false confidence.
 - Every finding must include file:line references so it can be traced back to code.
-- Findings are surfaced as GitHub issues via the `tech-lead` skill — structure your output so each finding has a clear title, problem, risk, and recommendation.
+- Structure each finding with a clear title, problem, risk, and recommendation — this format is required by the `tech-lead` skill, which presents findings to the user and optionally creates GitHub issues after approval.
