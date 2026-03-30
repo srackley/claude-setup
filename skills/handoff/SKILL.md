@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: Use when ending a session, switching context, or wrapping up a task — produces a handoff doc, updates memories, recommends /clear or /compact, and generates the next-session starter prompt
+description: Use when ending a session, pausing work on a branch, or switching to a new topic
 ---
 
 # Handoff
@@ -9,31 +9,17 @@ description: Use when ending a session, switching context, or wrapping up a task
 
 Wraps up a session cleanly so the next session can start immediately without reconstruction overhead.
 
-## Step 1 — Assess what happened
+## Step 1 — Decide wrap-up type
 
-Ask (or infer from context):
-- Is there in-progress work on a branch? (code changed, uncommitted, or unmerged)
-- Is the user continuing in this session right now, or truly wrapping up?
-- Was anything discovered worth preserving across sessions?
+1. Is the user **continuing in this session right now?**
+   - Yes → recommend `/compact`, stop here. No handoff needed yet.
+   - No → continue.
 
-```
-digraph assess {
-    "Work in flight?" [shape=diamond];
-    "Continuing now?" [shape=diamond];
-    "Full wrap-up" [shape=box];
-    "/compact only — skip rest" [shape=box];
-    "Minimal wrap-up" [shape=box];
+2. Is there **in-progress work on a branch?** (uncommitted changes, unmerged branch, open PR)
+   - Yes → **Full wrap-up** (all steps below)
+   - No → **Minimal wrap-up**: skip Steps 3–5, just do memory check (Step 2) and recommend `/clear`
 
-    "Work in flight?" -> "Continuing now?" [label="yes"];
-    "Work in flight?" -> "Minimal wrap-up" [label="no (read-only session)"];
-    "Continuing now?" -> "/compact only — skip rest" [label="yes"];
-    "Continuing now?" -> "Full wrap-up" [label="no"];
-}
-```
-
-**Minimal wrap-up** (read-only session): no handoff doc, no starter prompt. Just check memory and recommend `/clear`.
-
-**Full wrap-up**: all steps below.
+Note: "no work in flight" is not the same as "nothing happened." A session with architectural decisions, research, or answered questions still warrants a memory check even without code changes.
 
 ## Step 2 — Update memories
 
@@ -41,13 +27,16 @@ Review the conversation for anything non-obvious and cross-session relevant:
 - New user preferences or feedback → update/create memory file + MEMORY.md index
 - New project context (decisions, constraints) → same
 - New references to external systems → same
+- Session notes: if a significant decision or gotcha was discovered, consider writing a dated entry to `~/.claude/session-notes/` (permanent record, never delete)
 
 Do NOT write memory for task state or current progress — that goes in the handoff doc.
 
-Memory files: `~/.claude/projects/<project-key>/memory/`
+**Project key** = git repo root path with every `/` replaced by `-`, including the leading slash.
+Use `git rev-parse --show-toplevel` to get the repo root — do NOT use the current working directory (worktrees would produce a wrong key).
 
-Project key = working directory with every `/` replaced by `-`, including the leading one.
-Example: `/Users/shelbyrackley/work/my-app` → `-Users-shelbyrackley-work-my-app`
+Example: repo root `/Users/shelbyrackley/work/my-app` → project key `-Users-shelbyrackley-work-my-app`
+
+Memory files: `~/.claude/projects/<project-key>/memory/`
 
 ## Step 3 — Write the handoff doc
 
@@ -96,15 +85,12 @@ Handoff doc: ~/.claude/projects/<project-key>/memory/handoffs/<name>.md
 Next: <first action from next steps>
 ```
 
-## Step 6 — Recommend /clear or /compact
-
-- **`/clear`** — session is over, or next topic is different
-- **`/compact`** — staying in this session on the same task (but at this point you already exited in Step 1)
+Recommend `/clear` — the handoff doc is the continuity mechanism, not the context window.
 
 ## Common mistakes
 
+- **Using CWD instead of git root for project key** — worktrees have a different CWD; always use `git rev-parse --show-toplevel`
+- **Treating "no code changes" as "nothing to remember"** — decisions and research are memory-worthy even without commits
 - **Writing memory for task state** — put it in the handoff doc
-- **Writing a handoff for a read-only session** — skip it if nothing is in flight
-- **Skipping the starter prompt** — highest-value output, never omit for in-flight work
-- **Recommending /compact at true session end** — if wrapping up and moving on, always `/clear`
-- **Ambiguous project key** — every `/` becomes `-`, including the leading slash
+- **Skipping the starter prompt** — highest-value output; never omit for in-flight work
+- **Recommending /compact at session end** — if wrapping up and moving on, always `/clear`
