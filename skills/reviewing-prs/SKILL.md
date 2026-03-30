@@ -26,12 +26,16 @@ digraph reviewing_prs {
     "Check existing review state" -> "Already reviewed, nothing changed?" [shape=diamond];
     "Already reviewed, nothing changed?" -> "DONE — report 'already reviewed'" [label="yes"];
     "Already reviewed, nothing changed?" -> "Determine scope" [label="no"];
-    "Determine scope" -> "Launch 5 agents (parallel)";
-    "Launch 5 agents (parallel)" -> "Collect + deduplicate findings";
+    "Determine scope" -> "Check out PR branch in worktree";
+    "Check out PR branch in worktree" -> "Gather context (diff, comments, linked issues, specs)";
+    "Gather context (diff, comments, linked issues, specs)" -> "Summarize to user";
+    "Summarize to user" -> "Launch 5 agents (parallel, scoped context)";
+    "Launch 5 agents (parallel, scoped context)" -> "Collect + deduplicate findings";
     "Collect + deduplicate findings" -> "Verify each finding (verified-analysis)";
     "Verify each finding (verified-analysis)" -> "Classify: severity + validity";
     "Classify: severity + validity" -> "Present to user (grouped, per-finding)";
     "Present to user (grouped, per-finding)" -> "Post approved review to GitHub";
+    "Post approved review to GitHub" -> "Clean up worktree";
 }
 ```
 
@@ -65,23 +69,72 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments
 | Prior review + new commits | Scope to changes since last review |
 | Prior review + author responses | Re-review responded threads + new commits |
 
-## Step 3: Launch Agents
+## Step 3: Check Out PR Branch in Worktree
 
-All 5 review agents in parallel via Task tool (background):
+**REQUIRED before launching agents.** Agents read files from the local filesystem. If the repo is on main, they read main — not the PR code. This produces false positives where agents report "code doesn't exist" for code that is in the PR.
 
-- `code-reviewer`
-- `silent-failure-hunter`
-- `pr-test-analyzer`
-- `comment-analyzer`
-- `type-design-analyzer`
+```bash
+REPO_ROOT=$(git rev-parse --show-toplevel)
+git worktree add "$REPO_ROOT/.worktrees/pr-<number>-review" origin/<pr-branch>
+```
 
-Each receives the PR diff and file list.
+All agents must receive the absolute worktree path and be told to read files from there. After the review is posted, clean up:
 
-## Step 4: Deduplicate
+```bash
+git worktree remove "$REPO_ROOT/.worktrees/pr-<number>-review"
+```
+
+## Step 4: Gather Context
+
+**REQUIRED before launching agents.** Read the full picture before making any assessments.
+
+```bash
+# Full diff scoped to branch vs base
+gh pr diff {number}
+
+# All PR comments and review threads (may already be fetched in Step 2 — read them for content now)
+gh api repos/{owner}/{repo}/pulls/{number}/comments
+gh api repos/{owner}/{repo}/pulls/{number}/reviews
+
+# Linked issues — extract "closes #X", "fixes #X", bare URLs from PR body
+gh issue view {linked-number} --json title,body,labels,comments
+
+# Spec/doc links in PR body — fetch and read
+```
+
+If a linked issue or spec can't be fetched (private, 404), note it explicitly — don't silently skip.
+
+**Summarize to the user before proceeding:**
+
+```
+## PR #42 Context
+
+What it does: [1–2 sentences]
+Why: [linked issue summary or stated reason in PR body]
+Linked issues: #X — [title]
+Key notes from comments: [anything material from existing review threads]
+Specs/docs referenced: [links read, or "none"]
+```
+
+This context stays with the main agent for synthesis. Do not pass linked issue text or comment threads downstream to review agents — they need fresh eyes on the code.
+
+## Step 5: Launch Agents
+
+All 5 review agents in parallel via Task tool (background). Each gets only what it needs for its job, plus the absolute worktree path so they read the PR code, not the currently checked-out branch:
+
+| Agent | Receives |
+|-------|----------|
+| `code-reviewer` | diff + worktree path |
+| `silent-failure-hunter` | diff + worktree path |
+| `type-design-analyzer` | diff + worktree path |
+| `pr-test-analyzer` | diff + PR title/description + worktree path |
+| `comment-analyzer` | diff + PR comments + worktree path |
+
+## Step 6: Deduplicate
 
 Multiple agents often flag the same code. Merge overlapping findings, keeping the most specific diagnosis.
 
-## Step 5: Verify Each Finding
+## Step 7: Verify Each Finding
 
 **REQUIRED:** Invoke `verified-analysis` before classifying ANY finding. Do not skip this. Do not inline your own verification. The skill's verification matrix, confidence gate, and structural rules prevent false positives that would embarrass you in a public review.
 
@@ -112,7 +165,7 @@ For each finding, produce:
   Review comment: [draft text, if VALID]
 ```
 
-## Step 6: Present for User Approval
+## Step 8: Present for User Approval
 
 **On re-reviews: confirm prior findings first.** Before presenting new findings, verify each prior finding against the current code and show the user what's resolved vs what's new. This prevents confusion where new findings look like rehashes of already-fixed issues.
 
@@ -164,7 +217,7 @@ N. src/file.ts:line
 
 **UNCERTAIN findings** are shown separately and NOT posted unless the user explicitly approves them. If posted, prefix with "Worth checking:" to signal lower confidence.
 
-## Step 7: Post Review
+## Step 9: Post Review
 
 After user approves, post a single GitHub review:
 
@@ -182,6 +235,8 @@ gh api repos/{owner}/{repo}/pulls/{number}/reviews \
   --field 'comments=[...]'
 ```
 
+Then clean up the worktree (see Step 3).
+
 ## What This Skill Does NOT Do
 
 - **Fix code.** That's the PR author's job.
@@ -198,3 +253,5 @@ gh api repos/{owner}/{repo}/pulls/{number}/reviews \
 - "I'll skip verified-analysis for this one" → No. Every finding gets verified.
 - "The agent said so" → Agents are wrong regularly. That's why this skill exists.
 - "I'll present all findings and let the user sort them out" → Group by severity, per-finding controls. Don't dump.
+- "The PR is small, I can just read files directly" → Create the worktree. Size doesn't determine whether the branch is merged. Skipping worktrees caused 9/12 false positives in a real review.
+- "I'll launch agents first and check the worktree later" → No. Agents read files immediately. Worktree must exist BEFORE any agent launches.
