@@ -14,6 +14,7 @@ Wraps up a session cleanly so the next session can start immediately without rec
 1. Is the user **continuing in this session right now?**
    - Yes → recommend `/compact`, stop here. No handoff needed yet.
    - No → continue.
+   - If the user is stepping away briefly and returning in the same session, treat as Yes.
 
 2. Is there **in-progress work on a branch?** (uncommitted changes, unmerged branch, open PR)
    - Yes → **Full wrap-up** (all steps below)
@@ -31,14 +32,19 @@ Review the conversation for anything non-obvious and cross-session relevant:
 
 Do NOT write memory for task state or current progress — that goes in the handoff doc.
 
-**Project key** = git repo root path with every `/` replaced by `-`, including the leading slash.
+**Project key** = git repo root path with every `/` and `.` replaced by `-`, including the leading slash.
 Use `git rev-parse --show-toplevel` to get the repo root — do NOT use the current working directory (worktrees would produce a wrong key).
 
-Example: repo root `/Users/shelbyrackley/work/my-app` → project key `-Users-shelbyrackley-work-my-app`
+Example: `/Users/shelbyrackley/work/my-app` → `-Users-shelbyrackley-work-my-app`
+Example with dot: `/Users/shelbyrackley/.claude` → `-Users-shelbyrackley--claude` (`.` becomes `-`, giving `--`)
+
+If unsure, verify by checking `~/.claude/projects/` — the actual directories Claude Code created are the source of truth.
 
 Memory files: `~/.claude/projects/<project-key>/memory/`
 
 ## Step 3 — Write the handoff doc
+
+First, resolve the branch name: `git -C <repo-root> branch --show-current`. If empty (detached HEAD), use the short commit SHA instead and note it in the doc.
 
 Path: `~/.claude/projects/<project-key>/memory/handoffs/<branch-name>.md`
 
