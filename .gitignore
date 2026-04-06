@@ -20,4 +20,3 @@
 
 # Re-ignore within allowed dirs
 **/.DS_Store
-hooks/tests/

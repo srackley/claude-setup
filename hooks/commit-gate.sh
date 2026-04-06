@@ -25,7 +25,9 @@ command=$(echo "$input" | jq -r '.tool_input.command // empty' 2>/dev/null)
 
 # Only enforce on git commit commands (not git commit-graph, etc.)
 # Match git commit anywhere in the command (handles chained: "git add && git commit")
-if ! echo "$command" | grep -qE '(^|&&|;)\s*git\s+commit(\s|$)'; then
+# Also handles worktree pattern: "git -C /path commit" (single -C flag only;
+# paths with spaces are not matched — .worktrees/ paths don't contain spaces)
+if ! echo "$command" | grep -qE '(^|&&|;)\s*git\s+(-C\s+\S+\s+)?commit(\s|$)'; then
     exit 0
 fi
 
@@ -76,7 +78,8 @@ if [[ -n "$bash_lines" ]]; then
     # Match only actual git commit commands, not commands that merely contain
     # "git commit" as an argument (e.g., grep 'git commit' transcript.jsonl).
     # Require git commit to appear at command start or after && / ; separators.
-    grep_output=$(echo "$bash_lines" | grep -E '"command":"(([^"]*&&|[^"]*;)\s*)?git\s+commit(\s|\\|")') || grep_output=""
+    # Also matches "git -C /path commit" (single -C flag before subcommand).
+    grep_output=$(echo "$bash_lines" | grep -E '"command":"(([^"]*&&|[^"]*;)\s*)?git\s+(-C\s+\S+\s+)?commit(\s|\\|")') || grep_output=""
 else
     grep_output=""
 fi
