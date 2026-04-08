@@ -5,6 +5,19 @@ load helpers
 # The extract_timeline function is sourced from commit-gate.sh.
 # We test it by calling the extraction script directly.
 EXTRACTOR="$BATS_TEST_DIRNAME/../extract-timeline.sh"
+FIXTURES_DIR="$BATS_TEST_DIRNAME/fixtures"
+
+setup() {
+    cp "$FIXTURES_DIR/compliance-fixture-clean.jsonl" /tmp/compliance-fixture-clean.jsonl
+    cp "$FIXTURES_DIR/compliance-fixture-violations.jsonl" /tmp/compliance-fixture-violations.jsonl
+    cp "$FIXTURES_DIR/compliance-fixture-real-format.jsonl" /tmp/compliance-fixture-real-format.jsonl
+}
+
+teardown() {
+    rm -f /tmp/compliance-fixture-clean.jsonl \
+          /tmp/compliance-fixture-violations.jsonl \
+          /tmp/compliance-fixture-real-format.jsonl
+}
 
 # --- Basic event extraction ---
 

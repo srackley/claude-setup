@@ -195,7 +195,7 @@ assert_blocked() {
 
 assert_warned() {
     local output="$1"
-    echo "$output" | jq -e 'has("systemMessage")' > /dev/null 2>&1
+    echo "$output" | jq -e '.decision == "warn"' > /dev/null 2>&1
 }
 
 # Run a hook and assert it exits with code 2 (blocking error).

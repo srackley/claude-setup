@@ -17,10 +17,6 @@ get_project_name() {
     basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 }
 
-get_unpromoted_corrections() {
-    return
-}
-
 get_recent_session_notes() {
     local project_name
     project_name=$(get_project_name)

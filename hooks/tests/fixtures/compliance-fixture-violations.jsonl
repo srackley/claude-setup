@@ -1,0 +1,5 @@
+{"type":"user","isMeta":false,"content":"Use the docs-researcher agent to look up the Zod API documentation"}
+{"type":"tool_use","name":"Skill","input":{"skill":"reviewing-code"}}
+{"type":"tool_use","name":"Agent","input":{"subagent_type":"general-purpose"}}
+{"type":"tool_use","name":"Agent","input":{"subagent_type":"pr-review-toolkit:code-reviewer"}}
+{"type":"tool_use","name":"Skill","input":{"skill":"finishing-work"}}
