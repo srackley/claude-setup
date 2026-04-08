@@ -25,8 +25,8 @@ Write code (TDD) → verifying → >>> /reviewing-code <<< → finishing-work �
 ```dot
 digraph review_loop {
     rankdir=TB;
-    "Determine scope" -> "Launch 5 agents (parallel)";
-    "Launch 5 agents (parallel)" -> "Collect + deduplicate findings";
+    "Determine scope" -> "Launch agents (parallel)";
+    "Launch agents (parallel)" -> "Collect + deduplicate findings";
     "Collect + deduplicate findings" -> "Any findings?" [shape=diamond];
     "Any findings?" -> "DONE — print report" [label="no"];
     "Any findings?" -> "Verify each finding" [label="yes"];
@@ -43,13 +43,17 @@ digraph review_loop {
 
 **Step 1: Scope.** `git diff main...HEAD` (full branch diff). Override with argument: `/reviewing-code staged` or `/reviewing-code <base-ref>`.
 
-**Step 2: Launch agents.** Use the `review-orchestrator` agent (runs on Sonnet — plugin agents inherit its model):
+**Step 2: Launch agents.** Dispatch all applicable agents in parallel using the Agent tool, passing each one the full diff output from Step 1.
 
-**CRITICAL:** Run the diff command yourself in Step 1, then include the full diff output directly in the orchestrator's prompt. The orchestrator has no Bash tool — it cannot run `git diff`. If you tell it to fetch the diff, it will fall back to reading every file with Read/Glob, blow up its context, and never reach the sub-agent dispatch step.
+**Docs-only diff** (only `.md` documentation files — no source code, and no `agents/` or `skills/` files which are treated as source): Launch `comment-analyzer` only. These agents have no executable code to analyze. Include the key source files the docs reference in its prompt so it can verify behavioral descriptions, not just check that referenced functions exist.
 
-The orchestrator launches all 5 pr-review-toolkit agents in parallel and returns deduplicated findings.
+**Code diff** (any source files present, including `agents/` and `skills/` `.md` files): Launch these 4:
+- `code-reviewer` — bugs, logic, security, conventions
+- `silent-failure-hunter` — silent failures, error handling
+- `pr-test-analyzer` — test coverage gaps
+- `comment-analyzer` — comment accuracy
 
-**Docs-heavy diffs (primarily `.md` files):** The diff contains no source code, so `comment-analyzer` can only surface-scan without knowing what to verify against. Include the key source files the docs reference in the orchestrator prompt — not just the diff. Example: "These docs make claims about `clientApiService.ts`, `AccountService.js`, and `configureStore.js` — verify behavioral descriptions against those files." Without this, agents check that referenced functions exist but not that the behavioral descriptions are accurate.
+Also launch `type-design-analyzer` if the diff contains type definitions (`type `, `interface `, `class `, `enum `, `struct `, or equivalent).
 
 Re-run every round. Fixes can cascade across domains.
 
@@ -96,7 +100,7 @@ Examples of findings worth documenting:
 
 - **Max 3 rounds.** No negotiation. If findings persist after 3, they go in the report as Deferred.
 - **Compact at round 2+.** Write checkpoint, run `/compact`, recover from checkpoint.
-- **If ANY change was made in a round, re-run ALL 5 agents.** No "this is too small to re-verify."
+- **If ANY change was made in a round, re-run ALL agents.** No "this is too small to re-verify."
 
 ## PR Mode (`/reviewing-code pr`)
 

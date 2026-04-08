@@ -4,7 +4,7 @@ description: "Use this agent when you need to review a pull request for test cov
 model: sonnet
 # NOTE: Copied from pr-review-toolkit plugin (not inherited) to pin to sonnet
 # explicitly. The plugin version uses model: inherit, which resolves to Opus when
-# invoked directly from an Opus session (bypassing review-orchestrator). If the
+# invoked directly from an Opus session. If the
 # upstream plugin updates this agent, merge changes manually.
 color: cyan
 tools: Read, Grep, Glob, LS
