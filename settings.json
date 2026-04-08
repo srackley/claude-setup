@@ -1,9 +1,5 @@
 {
   "permissions": {
-    "deny": [
-      "Edit(**/*.po)",
-      "Write(**/*.po)"
-    ],
     "allow": [
       "Bash(AWS_PROFILE=wanderu-dev task dev *)",
       "Bash(asdf install *)",
@@ -202,9 +198,13 @@
       "Edit(~/.claude/reviews/**)",
       "Write(~/.claude/reviews/**)",
       "Write(//tmp/**)"
+    ],
+    "deny": [
+      "Edit(**/*.po)",
+      "Write(**/*.po)"
     ]
   },
-  "model": "sonnet",
+  "model": "Sonnet",
   "hooks": {
     "SessionStart": [
       {
