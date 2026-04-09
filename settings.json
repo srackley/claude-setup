@@ -1,5 +1,11 @@
 {
   "permissions": {
+    "additionalDirectories": [
+      "/Users/shelbyrackley/Wanderu/canopy",
+      "/Users/shelbyrackley/Wanderu/ui-react",
+      "/Users/shelbyrackley/Wanderu/nexus",
+      "/Users/shelbyrackley/polish-stash"
+    ],
     "allow": [
       "Bash(AWS_PROFILE=wanderu-dev task dev *)",
       "Bash(asdf install *)",
