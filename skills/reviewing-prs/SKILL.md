@@ -33,7 +33,8 @@ digraph reviewing_prs {
     "Launch 5 agents (parallel, scoped context)" -> "Collect + deduplicate findings";
     "Collect + deduplicate findings" -> "Verify each finding (verified-analysis)";
     "Verify each finding (verified-analysis)" -> "Classify: severity + validity";
-    "Classify: severity + validity" -> "Present to user (grouped, per-finding)";
+    "Classify: severity + validity" -> "Challenge VALID findings (parallel challengers)";
+    "Challenge VALID findings (parallel challengers)" -> "Present to user (grouped, per-finding)";
     "Present to user (grouped, per-finding)" -> "Post approved review to GitHub";
     "Post approved review to GitHub" -> "Clean up worktree";
 }
@@ -165,6 +166,28 @@ For each finding, produce:
   Review comment: [draft text, if VALID]
 ```
 
+## Step 7.5: Challenge VALID Findings
+
+**REQUIRED:** Spawn one `review-challenger` agent per VALID finding, all in parallel in a single message. Do not wait for one to finish before launching the others.
+
+Each challenger receives **only**:
+- The finding summary: severity, file path, line range, one sentence on what the concern is, one sentence on why it matters
+- The worktree path (so it reads PR code, not main)
+- The repo's CLAUDE.md content (pass inline — do not ask the challenger to find it)
+
+Do **not** give the challenger your reasoning chain, the full diff, or other findings. Cognitive independence is the point — a challenger that sees your argument will confirm it.
+
+### Verdict mapping
+
+| Challenger verdict | Result |
+|---|---|
+| **Confirmed** | Stays VALID — no verdict surfaced in output |
+| **Weakened** | Downgrade to DISPUTED — show challenger reasoning in output |
+| **Refuted** | Dropped — log to `~/.claude/reviews/<project>/pr-<number>/refuted.md` |
+| **Inconclusive** | Downgrade to DISPUTED — show challenger reasoning in output |
+
+Refuted findings are not shown to the user. Log each to the artifacts file so there is an audit trail if needed.
+
 ## Step 8: Present for User Approval
 
 **On re-reviews: confirm prior findings first.** Before presenting new findings, verify each prior finding against the current code and show the user what's resolved vs what's new. This prevents confusion where new findings look like rehashes of already-fixed issues.
@@ -201,10 +224,20 @@ Review action: REQUEST_CHANGES / COMMENT
 ### NITS (N findings)
 ...same per-finding format...
 
-### UNCERTAIN (N findings — not posted unless you approve)
+### DISPUTED (N findings — not posted unless you approve)
+*Passed verified-analysis but an independent challenger found mitigating evidence.*
 
 N. src/file.ts:line
-   [What was found + why uncertain]
+   [Original concern]
+   Challenger: Weakened — [3–5 sentence challenger reasoning, specific to this finding]
+
+   → post anyway / skip?
+
+### UNCERTAIN (N findings — not posted unless you approve)
+*verified-analysis could not confirm the finding with sufficient evidence.*
+
+N. src/file.ts:line
+   [What was found + why it couldn't be confirmed]
 
    → post anyway / skip?
 ```
@@ -215,7 +248,7 @@ N. src/file.ts:line
 - **skip** — drop from review
 - **change severity** — e.g., "3 → blocking"
 
-**UNCERTAIN findings** are shown separately and NOT posted unless the user explicitly approves them. If posted, prefix with "Worth checking:" to signal lower confidence.
+**DISPUTED and UNCERTAIN findings** are shown separately and NOT posted unless the user explicitly approves them. If posted, prefix with "Worth checking:" to signal lower confidence.
 
 ## Step 9: Post Review
 
@@ -255,3 +288,6 @@ Then clean up the worktree (see Step 3).
 - "I'll present all findings and let the user sort them out" → Group by severity, per-finding controls. Don't dump.
 - "The PR is small, I can just read files directly" → Create the worktree. Size doesn't determine whether the branch is merged. Skipping worktrees caused 9/12 false positives in a real review.
 - "I'll launch agents first and check the worktree later" → No. Agents read files immediately. Worktree must exist BEFORE any agent launches.
+- "This finding is obviously correct, no need to challenge it" → Every VALID finding gets a challenger. Obvious findings are wrong often enough.
+- "I'll skip the challenger to save time" → No. The challenger runs in parallel — it costs latency, not sequential time.
+- "I'll give the challenger my reasoning so it has context" → No. That defeats the purpose. The challenger must investigate independently.
