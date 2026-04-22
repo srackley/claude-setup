@@ -60,38 +60,14 @@ fi
 # Only check for skill invocations AFTER the last commit — skills from a prior
 # commit in the same session should not count for the current commit.
 #
-# Important constraints:
-# 1. Match only actual Bash tool_use entries containing git commit, not mentions
-#    of "git commit" in skill text, hook prompts, or session notes. We require
-#    "name":"Bash" or "tool_name":"Bash" on the same line — skill content and
-#    tool results won't have this alongside a "command" field.
-#    (Real transcripts use "name", test fixtures use "tool_name".)
-# 2. Exclude the CURRENT commit attempt (the last match), which is already in
-#    the transcript when PreToolUse fires. sed '$d' drops it.
-#
-# Two-stage grep: first find Bash tool_use lines, then filter for git commit.
-# Separating stages preserves the first grep's exit code for error detection.
-bash_lines=$(grep -nE '"(name|tool_name)":"Bash"' "$transcript_path" 2>&1) || {
-    grep_exit=$?
-    if [[ $grep_exit -eq 1 ]]; then
-        bash_lines=""
-    else
-        echo "BLOCKED: Failed to parse transcript for prior commits (grep exit $grep_exit)." >&2
-        exit 2
-    fi
-}
-if [[ -n "$bash_lines" ]]; then
-    # Match only actual git commit commands, not commands that merely contain
-    # "git commit" as an argument (e.g., grep 'git commit' transcript.jsonl).
-    # Require git commit to appear at command start or after && / ; separators.
-    # Also matches "git -C /path commit" (single -C flag before subcommand).
-    grep_output=$(echo "$bash_lines" | grep -E '"command":"(([^"]*&&|[^"]*;)\s*)?git\s+(-C\s+\S+\s+)?commit(\s|\\|")') || grep_output=""
-else
-    grep_output=""
-fi
-
-if [[ -n "$grep_output" ]]; then
-    last_commit_line=$(echo "$grep_output" | cut -d: -f1 | sed '$d' | tail -1)
+# Uses a marker file written by commit-success-marker.sh (PostToolUse hook).
+# The marker records the transcript line count after each successful commit.
+# Blocked commits never fire PostToolUse, so the anchor never shifts on failed
+# retries — this prevents the cascade bug where each blocked attempt shifted
+# the search window past valid skill invocations.
+marker_file="/tmp/last-commit-${session_id}.line"
+if [[ -n "$session_id" && -f "$marker_file" ]]; then
+    last_commit_line=$(cat "$marker_file")
 else
     last_commit_line=""
 fi

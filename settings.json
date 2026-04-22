@@ -341,6 +341,10 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/tdd-state-advance.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/commit-success-marker.sh"
           }
         ]
       }

@@ -351,6 +351,17 @@ add_issue_comment_to_transcript() {
         '{"type":"tool_use","tool_name":"Bash","tool_input":{"command":$cmd}}' >> "$tmpfile"
 }
 
+# Create a marker file simulating a successful prior commit at the current
+# transcript length. Mirrors what commit-success-marker.sh does on PostToolUse.
+# Usage: create_commit_marker "$session_id" "$transcript"
+create_commit_marker() {
+    local session_id="$1"
+    local transcript="$2"
+    local line_count
+    line_count=$(wc -l < "$transcript" | tr -d ' ')
+    echo "$line_count" > "/tmp/last-commit-${session_id}.line"
+}
+
 # Append a Write tool call for the PR verification file to a transcript.
 # Simulates Claude writing the verification table during the session.
 # Usage: add_verification_write_to_transcript "$transcript" "test-session-abc"

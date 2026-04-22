@@ -114,12 +114,11 @@ EOF
     rm -f "$transcript"
 }
 
-@test "blocks with error message when transcript is unreadable (grep exit > 1)" {
+@test "blocks when transcript is unreadable — fail-safe treats skills as missing" {
     transcript=$(build_transcript --session-notes --issue-comment "reviewing-code" "finishing-work")
     chmod 000 "$transcript"
     input=$(build_bash_input "git commit -m 'feat: thing'" "$transcript")
     run_and_assert_blocked "$input" "$HOOK"
-    echo "$stderr_output" | grep -q "grep exit"
     chmod 644 "$transcript"
     rm -f "$transcript"
 }
@@ -213,29 +212,40 @@ EOF
 @test "blocks second commit when skills were only invoked before the first commit" {
     # Prior commit had reviewing-code + finishing-work, but current commit has none.
     # Current commit is already in transcript when PreToolUse fires (real behavior).
+    local session_id="multi-block-$$"
     transcript=$(build_transcript --prior-commit --pre-commit-skills "reviewing-code" "finishing-work")
+    create_commit_marker "$session_id" "$transcript"
     add_current_commit_to_transcript "$transcript" "git commit -m 'feat: second thing'"
-    input=$(build_bash_input "git commit -m 'feat: second thing'" "$transcript")
+    input=$(build_bash_input_with_session "git commit -m 'feat: second thing'" "$transcript" "$session_id")
     run_and_assert_blocked "$input" "$HOOK"
-    rm -f "$transcript"
+    rm -f "$transcript" "/tmp/last-commit-${session_id}.line"
 }
 
 @test "auto-approves second commit when skills re-invoked after first commit" {
-    transcript=$(build_transcript --prior-commit --pre-commit-skills "reviewing-code" "finishing-work" --session-notes --issue-comment "reviewing-code" "finishing-work")
+    local session_id="multi-approve-$$"
+    transcript=$(build_transcript --prior-commit --pre-commit-skills "reviewing-code" "finishing-work")
+    create_commit_marker "$session_id" "$transcript"
+    # Re-invoke skills after the prior commit marker
+    echo '{"type":"tool_use","tool_name":"Skill","tool_input":{"skill":"reviewing-code"}}' >> "$transcript"
+    echo '{"type":"tool_use","tool_name":"Skill","tool_input":{"skill":"finishing-work"}}' >> "$transcript"
+    echo '{"type":"tool_use","tool_name":"Write","tool_input":{"file_path":"/Users/me/.claude/session-notes/ui-react/2026-02-28-feature.md"}}' >> "$transcript"
+    add_issue_comment_to_transcript "$transcript" 42
     add_current_commit_to_transcript "$transcript" "git commit -m 'feat: second thing'"
-    input=$(build_bash_input "git commit -m 'feat: second thing'" "$transcript")
+    input=$(build_bash_input_with_session "git commit -m 'feat: second thing'" "$transcript" "$session_id")
     run_hook_capture_stdout "$input" "$HOOK"
     assert_auto_approved "$hook_stdout"
-    rm -f "$transcript"
+    rm -f "$transcript" "/tmp/last-commit-${session_id}.line"
 }
 
 @test "block message for second commit mentions missing finishing-work" {
+    local session_id="multi-msg-$$"
     transcript=$(build_transcript --prior-commit --pre-commit-skills "finishing-work")
+    create_commit_marker "$session_id" "$transcript"
     add_current_commit_to_transcript "$transcript" "git commit -m 'feat: second thing'"
-    input=$(build_bash_input "git commit -m 'feat: second thing'" "$transcript")
+    input=$(build_bash_input_with_session "git commit -m 'feat: second thing'" "$transcript" "$session_id")
     run_and_assert_blocked "$input" "$HOOK"
     echo "$stderr_output" | grep -q "finishing-work"
-    rm -f "$transcript"
+    rm -f "$transcript" "/tmp/last-commit-${session_id}.line"
 }
 
 # --- Bug fix: "git commit" text in non-command fields ---
@@ -303,25 +313,37 @@ EOF
     # Two commits in one session. After the first commit, a grep diagnostic runs,
     # then skills are re-invoked for the second commit. The grep must not become
     # a second "prior commit" boundary that hides the re-invoked skills.
-    transcript=$(build_transcript --prior-commit --pre-commit-skills "reviewing-code" "finishing-work" --session-notes --issue-comment "reviewing-code" "finishing-work")
+    local session_id="grep-diag-multi-$$"
+    transcript=$(build_transcript --prior-commit --pre-commit-skills "reviewing-code" "finishing-work")
+    create_commit_marker "$session_id" "$transcript"
+    echo '{"type":"tool_use","tool_name":"Skill","tool_input":{"skill":"reviewing-code"}}' >> "$transcript"
+    echo '{"type":"tool_use","tool_name":"Skill","tool_input":{"skill":"finishing-work"}}' >> "$transcript"
+    echo '{"type":"tool_use","tool_name":"Write","tool_input":{"file_path":"/Users/me/.claude/session-notes/ui-react/2026-02-28-feature.md"}}' >> "$transcript"
+    add_issue_comment_to_transcript "$transcript" 42
     add_noise_line "$transcript" "grep-diagnostic"
     add_current_commit_to_transcript "$transcript" "git commit -m 'feat: second'"
-    input=$(build_bash_input "git commit -m 'feat: second'" "$transcript")
+    input=$(build_bash_input_with_session "git commit -m 'feat: second'" "$transcript" "$session_id")
     run_hook_capture_stdout "$input" "$HOOK"
     assert_auto_approved "$hook_stdout"
-    rm -f "$transcript"
+    rm -f "$transcript" "/tmp/last-commit-${session_id}.line"
 }
 
 @test "second commit with noise lines still works when skills re-invoked" {
     # Prior commit + noise lines + re-invoked skills = should pass
-    transcript=$(build_transcript --prior-commit --pre-commit-skills "reviewing-code" "finishing-work" --session-notes --issue-comment "reviewing-code" "finishing-work")
+    local session_id="noise-multi-$$"
+    transcript=$(build_transcript --prior-commit --pre-commit-skills "reviewing-code" "finishing-work")
+    create_commit_marker "$session_id" "$transcript"
+    echo '{"type":"tool_use","tool_name":"Skill","tool_input":{"skill":"reviewing-code"}}' >> "$transcript"
+    echo '{"type":"tool_use","tool_name":"Skill","tool_input":{"skill":"finishing-work"}}' >> "$transcript"
+    echo '{"type":"tool_use","tool_name":"Write","tool_input":{"file_path":"/Users/me/.claude/session-notes/ui-react/2026-02-28-feature.md"}}' >> "$transcript"
+    add_issue_comment_to_transcript "$transcript" 42
     add_noise_line "$transcript" "skill-text"
     add_noise_line "$transcript" "hook-prompt"
     add_current_commit_to_transcript "$transcript" "git commit -m 'feat: second'"
-    input=$(build_bash_input "git commit -m 'feat: second'" "$transcript")
+    input=$(build_bash_input_with_session "git commit -m 'feat: second'" "$transcript" "$session_id")
     run_hook_capture_stdout "$input" "$HOOK"
     assert_auto_approved "$hook_stdout"
-    rm -f "$transcript"
+    rm -f "$transcript" "/tmp/last-commit-${session_id}.line"
 }
 
 # --- Continuation session: stale transcript_path fix ---
@@ -536,24 +558,20 @@ EOF
 
 @test "gh issue comment before last commit does not satisfy check for new commit" {
     local session_id="issue-scoping-$$"
-    transcript=$(build_transcript --prior-commit --pre-commit-skills "reviewing-code" "finishing-work" --session-notes "reviewing-code" "finishing-work")
-    # Issue comment was posted BEFORE the prior commit marker — should not count
-    # We need to insert it before the prior commit in the transcript
-    # build_transcript puts prior commit after pre-commit-skills, so add comment to pre-commit section
-    # Instead, build manually: Read → issue comment → prior commit → skills → session notes
-    transcript2=$(mktemp /tmp/claude-issue-scoping-XXXXXX)
-    echo '{"type":"tool_use","tool_name":"Read","tool_input":{"file_path":"/tmp/foo.js"}}' >> "$transcript2"
-    add_issue_comment_to_transcript "$transcript2" 99
-    echo '{"type":"tool_use","tool_name":"Bash","tool_input":{"command":"git commit -m '\''feat: prior'\''"}}' >> "$transcript2"
-    echo '{"type":"tool_use","tool_name":"Write","tool_input":{"file_path":"/Users/me/.claude/session-notes/ui-react/2026-02-28-prior.md"}}' >> "$transcript2"
-    echo '{"type":"tool_use","tool_name":"Skill","tool_input":{"skill":"finishing-work"}}' >> "$transcript2"
-    echo '{"type":"tool_use","tool_name":"Write","tool_input":{"file_path":"/Users/me/.claude/session-notes/ui-react/2026-02-28-feature.md"}}' >> "$transcript2"
-    # Add current commit to transcript so sed '$d' correctly identifies the prior commit boundary
-    add_current_commit_to_transcript "$transcript2" "git commit -m 'feat: second'"
-    input=$(build_bash_input_with_session "git commit -m 'feat: second'" "$transcript2" "$session_id")
+    # Build manually: Read → issue comment → prior commit (with marker) → skills → session notes
+    transcript=$(mktemp /tmp/claude-issue-scoping-XXXXXX)
+    echo '{"type":"tool_use","tool_name":"Read","tool_input":{"file_path":"/tmp/foo.js"}}' >> "$transcript"
+    add_issue_comment_to_transcript "$transcript" 99
+    echo '{"type":"tool_use","tool_name":"Bash","tool_input":{"command":"git commit -m '\''feat: prior'\''"}}' >> "$transcript"
+    create_commit_marker "$session_id" "$transcript"
+    echo '{"type":"tool_use","tool_name":"Write","tool_input":{"file_path":"/Users/me/.claude/session-notes/ui-react/2026-02-28-prior.md"}}' >> "$transcript"
+    echo '{"type":"tool_use","tool_name":"Skill","tool_input":{"skill":"finishing-work"}}' >> "$transcript"
+    echo '{"type":"tool_use","tool_name":"Write","tool_input":{"file_path":"/Users/me/.claude/session-notes/ui-react/2026-02-28-feature.md"}}' >> "$transcript"
+    add_current_commit_to_transcript "$transcript" "git commit -m 'feat: second'"
+    input=$(build_bash_input_with_session "git commit -m 'feat: second'" "$transcript" "$session_id")
     rm -f "/tmp/no-issues-${session_id}.txt"
     run_and_assert_blocked "$input" "$HOOK"
-    rm -f "$transcript" "$transcript2"
+    rm -f "$transcript" "/tmp/last-commit-${session_id}.line"
 }
 
 # --- git -C <path> support (worktree commits) ---
@@ -587,33 +605,36 @@ EOF
 
 @test "detects prior git -C commit as boundary — blocks second commit without re-invoked skills" {
     # Prior commit used git -C, current uses plain git commit.
-    # The prior-commit boundary detection must recognize git -C as a commit.
+    # The marker file records the boundary regardless of commit command form.
+    local session_id="dashc-prior-$$"
     transcript=$(mktemp /tmp/claude-tdd-transcript-XXXXXX)
     echo '{"type":"tool_use","tool_name":"Read","tool_input":{"file_path":"/tmp/foo.js"}}' >> "$transcript"
     echo '{"type":"tool_use","tool_name":"Skill","tool_input":{"skill":"finishing-work"}}' >> "$transcript"
     echo '{"type":"tool_use","tool_name":"Write","tool_input":{"file_path":"/Users/me/.claude/session-notes/ui-react/2026-02-28-prior.md"}}' >> "$transcript"
     jq -n -c --arg cmd "gh issue comment 42 --body \"Progress: prior\"" '{"type":"tool_use","tool_name":"Bash","tool_input":{"command":$cmd}}' >> "$transcript"
-    # Prior commit used git -C
     jq -n -c '{"type":"tool_use","tool_name":"Bash","tool_input":{"command":"git -C /path/to/repo commit -m '\''feat: prior'\''"}}' >> "$transcript"
-    # No skills re-invoked after prior commit — current commit should be blocked
+    create_commit_marker "$session_id" "$transcript"
     add_current_commit_to_transcript "$transcript" "git commit -m 'feat: second thing'"
-    input=$(build_bash_input "git commit -m 'feat: second thing'" "$transcript")
+    input=$(build_bash_input_with_session "git commit -m 'feat: second thing'" "$transcript" "$session_id")
     run_and_assert_blocked "$input" "$HOOK"
-    rm -f "$transcript"
+    rm -f "$transcript" "/tmp/last-commit-${session_id}.line"
 }
 
 @test "blocks git -C commit (current) when skills only invoked before prior plain commit" {
     # Prior commit used plain git commit, current uses git -C.
     # Gate check must catch git -C as a commit command.
+    local session_id="dashc-current-$$"
     transcript=$(build_transcript --prior-commit --pre-commit-skills "finishing-work")
+    create_commit_marker "$session_id" "$transcript"
     add_current_commit_to_transcript "$transcript" "git -C /path/to/repo commit -m 'feat: second'"
-    input=$(build_bash_input "git -C /path/to/repo commit -m 'feat: second'" "$transcript")
+    input=$(build_bash_input_with_session "git -C /path/to/repo commit -m 'feat: second'" "$transcript" "$session_id")
     run_and_assert_blocked "$input" "$HOOK"
-    rm -f "$transcript"
+    rm -f "$transcript" "/tmp/last-commit-${session_id}.line"
 }
 
 @test "blocks when both prior and current commits use git -C without re-invoked skills" {
     # Both commits use git -C — boundary detection AND gate must handle -C.
+    local session_id="both-dashc-$$"
     transcript=$(mktemp /tmp/claude-tdd-transcript-XXXXXX)
     echo '{"type":"tool_use","tool_name":"Read","tool_input":{"file_path":"/tmp/foo.js"}}' >> "$transcript"
     echo '{"type":"tool_use","tool_name":"Skill","tool_input":{"skill":"finishing-work"}}' >> "$transcript"
@@ -621,9 +642,112 @@ EOF
     jq -n -c --arg cmd "gh issue comment 42 --body \"Progress: prior\"" '{"type":"tool_use","tool_name":"Bash","tool_input":{"command":$cmd}}' >> "$transcript"
     # Prior commit used git -C
     jq -n -c '{"type":"tool_use","tool_name":"Bash","tool_input":{"command":"git -C /path/to/repo commit -m '\''feat: prior'\''"}}' >> "$transcript"
+    create_commit_marker "$session_id" "$transcript"
     # No skills re-invoked — current commit (also git -C) should be blocked
     add_current_commit_to_transcript "$transcript" "git -C /path/to/repo commit -m 'feat: second'"
-    input=$(build_bash_input "git -C /path/to/repo commit -m 'feat: second'" "$transcript")
+    input=$(build_bash_input_with_session "git -C /path/to/repo commit -m 'feat: second'" "$transcript" "$session_id")
     run_and_assert_blocked "$input" "$HOOK"
+    rm -f "$transcript" "/tmp/last-commit-${session_id}.line"
+}
+
+# --- Cascade recovery: blocked commits must NOT shift search anchor ---
+# These tests verify the fix for the cascade bug where blocked commit attempts
+# (which appear in the transcript as Bash tool_use entries) shifted the search
+# anchor past valid skill invocations. The fix uses a PostToolUse marker file
+# that only gets written on SUCCESSFUL commits.
+
+@test "cascade: blocked commit does not shift anchor — retry succeeds after completing prerequisites" {
+    # THE cascade bug scenario:
+    # 1. Agent does finishing-work + session-notes
+    # 2. Agent runs git commit → BLOCKED (missing issue comment)
+    # 3. Blocked attempt is now in transcript as Bash tool_use
+    # 4. Agent posts issue comment, retries git commit
+    # 5. OLD: anchors on step 2 (blocked), loses finishing-work + session-notes → BLOCKED again
+    # 6. NEW: no marker file (blocked never fires PostToolUse) → searches whole transcript → PASSES
+    local session_id="cascade-basic-$$"
+    transcript=$(build_transcript --session-notes "finishing-work")
+    # Step 2: blocked commit attempt (in transcript but no marker — it was blocked)
+    add_current_commit_to_transcript "$transcript" "git commit -m 'feat: thing'"
+    # Step 4: agent posts issue comment after being told it's missing
+    add_issue_comment_to_transcript "$transcript" 42
+    # Step 4 continued: agent retries commit (current attempt in transcript)
+    add_current_commit_to_transcript "$transcript" "git commit -m 'feat: thing'"
+    # No marker file — the blocked commit never succeeded, so PostToolUse never fired
+    rm -f "/tmp/last-commit-${session_id}.line"
+    input=$(build_bash_input_with_session "git commit -m 'feat: thing'" "$transcript" "$session_id")
+    run_hook_capture_stdout "$input" "$HOOK"
+    assert_auto_approved "$hook_stdout"
     rm -f "$transcript"
+}
+
+@test "cascade: multiple blocked attempts do not accumulate — final retry succeeds" {
+    # Agent blocked 3 times, completing one prerequisite each time.
+    # All blocked attempts are in transcript but no marker exists.
+    local session_id="cascade-multi-$$"
+    transcript=$(mktemp /tmp/claude-tdd-transcript-XXXXXX)
+    echo '{"type":"tool_use","tool_name":"Read","tool_input":{"file_path":"/tmp/foo.js"}}' >> "$transcript"
+    # Attempt 1: no prerequisites at all → blocked
+    add_current_commit_to_transcript "$transcript" "git commit -m 'feat: thing'"
+    # Agent does finishing-work
+    echo '{"type":"tool_use","tool_name":"Skill","tool_input":{"skill":"finishing-work"}}' >> "$transcript"
+    # Attempt 2: has finishing-work but no session-notes → blocked
+    add_current_commit_to_transcript "$transcript" "git commit -m 'feat: thing'"
+    # Agent writes session notes
+    echo '{"type":"tool_use","tool_name":"Write","tool_input":{"file_path":"/Users/me/.claude/session-notes/ui-react/2026-02-28-feature.md"}}' >> "$transcript"
+    # Attempt 3: has finishing-work + session-notes but no issue comment → blocked
+    add_current_commit_to_transcript "$transcript" "git commit -m 'feat: thing'"
+    # Agent posts issue comment
+    add_issue_comment_to_transcript "$transcript" 42
+    # Attempt 4: all prerequisites met → current attempt
+    add_current_commit_to_transcript "$transcript" "git commit -m 'feat: thing'"
+    rm -f "/tmp/last-commit-${session_id}.line"
+    input=$(build_bash_input_with_session "git commit -m 'feat: thing'" "$transcript" "$session_id")
+    run_hook_capture_stdout "$input" "$HOOK"
+    assert_auto_approved "$hook_stdout"
+    rm -f "$transcript"
+}
+
+@test "cascade: marker from prior successful commit is still used as anchor" {
+    # A real prior commit sets the marker. A subsequent blocked attempt does NOT
+    # update it (PostToolUse doesn't fire). The retry should anchor on the marker.
+    local session_id="cascade-with-prior-$$"
+    transcript=$(mktemp /tmp/claude-tdd-transcript-XXXXXX)
+    echo '{"type":"tool_use","tool_name":"Read","tool_input":{"file_path":"/tmp/foo.js"}}' >> "$transcript"
+    echo '{"type":"tool_use","tool_name":"Skill","tool_input":{"skill":"finishing-work"}}' >> "$transcript"
+    echo '{"type":"tool_use","tool_name":"Write","tool_input":{"file_path":"/Users/me/.claude/session-notes/ui-react/2026-02-28-first.md"}}' >> "$transcript"
+    add_issue_comment_to_transcript "$transcript" 42
+    # Successful first commit — marker is set
+    echo '{"type":"tool_use","tool_name":"Bash","tool_input":{"command":"git commit -m '\''feat: first'\''"}}' >> "$transcript"
+    create_commit_marker "$session_id" "$transcript"
+    # Agent does prerequisites for second commit
+    echo '{"type":"tool_use","tool_name":"Skill","tool_input":{"skill":"finishing-work"}}' >> "$transcript"
+    echo '{"type":"tool_use","tool_name":"Write","tool_input":{"file_path":"/Users/me/.claude/session-notes/ui-react/2026-02-28-second.md"}}' >> "$transcript"
+    # Second commit attempt blocked (missing issue comment)
+    add_current_commit_to_transcript "$transcript" "git commit -m 'feat: second'"
+    # Agent posts issue comment
+    add_issue_comment_to_transcript "$transcript" 99
+    # Retry — should anchor on marker (first commit), find finishing-work + session-notes + issue-comment after it
+    add_current_commit_to_transcript "$transcript" "git commit -m 'feat: second'"
+    input=$(build_bash_input_with_session "git commit -m 'feat: second'" "$transcript" "$session_id")
+    run_hook_capture_stdout "$input" "$HOOK"
+    assert_auto_approved "$hook_stdout"
+    rm -f "$transcript" "/tmp/last-commit-${session_id}.line"
+}
+
+@test "cascade: marker from prior commit correctly blocks when new prerequisites missing" {
+    # Prior successful commit sets marker. New commit has NO prerequisites after the marker.
+    # Should block (the marker correctly scopes the search window).
+    local session_id="cascade-block-new-$$"
+    transcript=$(mktemp /tmp/claude-tdd-transcript-XXXXXX)
+    echo '{"type":"tool_use","tool_name":"Read","tool_input":{"file_path":"/tmp/foo.js"}}' >> "$transcript"
+    echo '{"type":"tool_use","tool_name":"Skill","tool_input":{"skill":"finishing-work"}}' >> "$transcript"
+    echo '{"type":"tool_use","tool_name":"Write","tool_input":{"file_path":"/Users/me/.claude/session-notes/ui-react/2026-02-28-first.md"}}' >> "$transcript"
+    add_issue_comment_to_transcript "$transcript" 42
+    echo '{"type":"tool_use","tool_name":"Bash","tool_input":{"command":"git commit -m '\''feat: first'\''"}}' >> "$transcript"
+    create_commit_marker "$session_id" "$transcript"
+    # No new prerequisites — just jump to commit
+    add_current_commit_to_transcript "$transcript" "git commit -m 'feat: second'"
+    input=$(build_bash_input_with_session "git commit -m 'feat: second'" "$transcript" "$session_id")
+    run_and_assert_blocked "$input" "$HOOK"
+    rm -f "$transcript" "/tmp/last-commit-${session_id}.line"
 }
