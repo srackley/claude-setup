@@ -30,6 +30,16 @@ Review the conversation for anything non-obvious and cross-session relevant:
 - New references to external systems → same
 - Session notes: if a significant decision or gotcha was discovered, consider writing a dated entry to `~/.claude/session-notes/` (permanent record, never delete)
 
+**Before writing to memory, ask: does this belong in repo docs instead?**
+
+Memory is for Claude-only, cross-session context. Repo docs (conventions, gotchas, rules) are for team-shared knowledge. When a gotcha or pattern would be useful to any developer on the project — not just to you in a future session — it belongs in repo docs, not memory.
+
+Ask for each item:
+- Would a teammate benefit from knowing this? → propose it in the appropriate project docs or rules file
+- Is it Claude-specific context (preferences, project state, references)? → memory
+
+When you identify a repo-doc candidate: propose the specific file and the content to add, then add a short memory pointer so future sessions know where to look. Don't duplicate content in both places.
+
 Do NOT write memory for task state or current progress — that goes in the handoff doc.
 
 **Project key** = git repo root path with every `/` and `.` replaced by `-`, including the leading slash.
@@ -97,6 +107,7 @@ Recommend `/clear` — the handoff doc is the continuity mechanism, not the cont
 
 - **Using CWD instead of git root for project key** — worktrees have a different CWD; always use `git rev-parse --show-toplevel`
 - **Treating "no code changes" as "nothing to remember"** — decisions and research are memory-worthy even without commits
+- **Saving team-relevant gotchas to memory only** — if a teammate would benefit from knowing it, propose it in repo docs first; memory gets a pointer
 - **Writing memory for task state** — put it in the handoff doc
 - **Skipping the starter prompt** — highest-value output; never omit for in-flight work
 - **Recommending /compact at session end** — if wrapping up and moving on, always `/clear`
