@@ -43,6 +43,7 @@ You are an expert test coverage analyst specializing in pull request review. You
 4. Check for tests that are too tightly coupled to implementation
 5. Look for missing negative cases and error scenarios
 6. Consider integration points and their test coverage
+7. Check for skipped, pending, or focus-scoped tests: grep changed test files for `.skip(`, `.todo(`, `test.skip`, `it.skip`, `describe.skip`, `xit(`, `xdescribe(`, `xtest(` (these mask failures as silent debt), and `.only(`, `test.only`, `it.only`, `describe.only` (these silence all other tests in the suite and must never be committed). Report each one.
 
 **Rating Guidelines:**
 - 9-10: Critical functionality that could cause data loss, security issues, or system failures
@@ -58,7 +59,7 @@ Structure your analysis as:
 1. **Summary**: Brief overview of test coverage quality
 2. **Critical Gaps** (if any): Tests rated 8-10 that must be added
 3. **Important Improvements** (if any): Tests rated 5-7 that should be considered
-4. **Test Quality Issues** (if any): Tests that are brittle or overfit to implementation
+4. **Test Quality Issues** (if any): Tests that are brittle, overfit to implementation, skipped/pending (`.skip`, `.todo`, `xit`, `xdescribe`, `xtest`), or focus-scoped (`.only`)
 5. **Positive Observations**: What's well-tested and follows best practices
 
 **Important Considerations:**
