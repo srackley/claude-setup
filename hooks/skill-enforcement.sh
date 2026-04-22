@@ -31,8 +31,15 @@ fi
 # Get filename for pattern matching
 filename=$(basename "$file_path")
 
-# Read transcript_path from input (used by transcript-aware rules)
+# Read transcript_path and session_id from input (used by transcript-aware rules)
 transcript_path=$(echo "$input" | jq -r '.transcript_path // empty' 2>/dev/null)
+session_id=$(echo "$input" | jq -r '.session_id // empty' 2>/dev/null)
+
+# Fallback: transcript_path is missing or stale when the session CWD changes
+# (e.g., after EnterWorktree). Search by session_id across all project dirs.
+if [[ (-z "$transcript_path" || ! -f "$transcript_path") && -n "$session_id" ]]; then
+    transcript_path=$(find "$HOME/.claude/projects" -name "${session_id}.jsonl" -maxdepth 2 2>/dev/null | head -1)
+fi
 
 # Check whether a skill was invoked in the current session transcript.
 # Returns 0 (true) if found, 1 (false) if not found or transcript unavailable.

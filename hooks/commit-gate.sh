@@ -44,6 +44,12 @@ if [[ -n "$session_id" && -n "$transcript_path" ]]; then
     fi
 fi
 
+# Fallback: transcript_path is missing or stale when the session CWD changes
+# (e.g., after EnterWorktree). Search by session_id across all project dirs.
+if [[ (-z "$transcript_path" || ! -f "$transcript_path") && -n "$session_id" ]]; then
+    transcript_path=$(find "$HOME/.claude/projects" -name "${session_id}.jsonl" -maxdepth 2 2>/dev/null | head -1)
+fi
+
 # Fail-safe: if no transcript available, block
 if [[ -z "$transcript_path" || ! -f "$transcript_path" ]]; then
     echo "BLOCKED: Cannot verify skill invocations (transcript unavailable). Invoke finishing-work skill first, then retry the commit." >&2
