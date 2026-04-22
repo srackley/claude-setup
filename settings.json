@@ -248,6 +248,10 @@
           },
           {
             "type": "command",
+            "command": "~/.claude/hooks/git-safety.sh"
+          },
+          {
+            "type": "command",
             "command": "~/.claude/hooks/prefer-task.py"
           },
           {
