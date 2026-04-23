@@ -52,7 +52,7 @@ If the decision has architectural scope — affecting multiple features, data mo
 1. **Log and continue.** Do not pause mid-execution to report the decision to the user. Complete the task step, append the entry, then move on. Always note any affected later tasks in **Ramifications**. If the correction makes a later plan step unexecutable as written, log the entry and then pause to surface the conflict to the user before continuing.
 2. **Use the exact format above.** Don't adapt it to match other notes in the file — consistency matters for the review step.
 3. **One entry per decision.** If two decisions arise in the same task, write two entries.
-4. **File is local only.** Never stage or commit `implementation-decisions.md`. The `.gitignore` entry is the mechanical safeguard against accidental inclusion — but also never delete this file manually before `reviewing-decisions` has run, as it uses the file's presence as its trigger.
+4. **File is local only.** Never stage or commit `implementation-decisions.md`. Verify that your project's `.gitignore` contains an entry for `.docs/plans/**/implementation-decisions.md` — that is the mechanical safeguard against accidental inclusion. If the entry is missing, add it before starting plan execution. Never delete this file manually before `reviewing-decisions` has run, as it uses the file's presence as its trigger.
 
 ## Common Mistakes
 
