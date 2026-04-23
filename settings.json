@@ -170,6 +170,7 @@
       "mcp__plugin_context7_context7__*",
       "mcp__plugin_playwright_playwright__*",
       "mcp__wayfinder__*",
+      "mcp__datadog__*",
       "Grep(~/Wanderu/ui-react/**)",
       "Grep(~/Wanderu/nexus/**)",
       "Grep(~/Wanderu/canopy/**)",
