@@ -9,14 +9,14 @@ Announce: "I'm using the create-plan skill to create the implementation plan."
 
 ## Step 1: Identify the Spec
 
-A plan must be grounded in a spec. Ask which spec this plan is based on (or check context). Look in `.docs/specs/` for candidates.
+A plan must be grounded in a spec. Ask which spec this plan is based on (or check context). Look in the project's spec directory (commonly `.docs/specs/` or `docs/specs/`) for candidates.
 
 If no spec exists: **STOP.** Say: "Implementation plans require a spec. Run `/create-spec` first."
 
 Read the spec in full. Check its `status:` frontmatter field:
 
 - `DRAFT`: **STOP.** Say: "This spec is still DRAFT. Have it reviewed, resolve any open questions, and promote it to READY before creating a plan."
-- `READY` or `IN PROGRESS`: Proceed. If `IN PROGRESS`, check `.docs/plans/` for an existing plan — some tasks may already be complete.
+- `READY` or `IN PROGRESS`: Proceed. If `IN PROGRESS`, check the project's plan directory (commonly `.docs/plans/` or `docs/plans/`) for an existing plan — some tasks may already be complete.
 - `IMPLEMENTED`: Unusual. Say: "This spec is IMPLEMENTED — the feature is already live. Specs can drift from the codebase after implementation, so building a plan from this means building against potentially stale requirements. Are you (a) planning a new milestone on top of this feature (I can proceed, but you may want to update the spec first so the plan reflects current state), or (b) looking at the wrong spec (point me at the right one)?" Wait for their answer before proceeding to Step 2.
 - `ABANDONED`: Wrong spec — confirm this is intentional before continuing.
 - `DEPRECATED` or `SUPERSEDED`: **STOP** unless user confirms they want to plan against a retired spec.
@@ -45,7 +45,7 @@ Before invoking, brief it with the spec content (Step 1), confirmed scope (Step 
 ```markdown
 > **Before implementing:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` to implement this plan task-by-task.
 
-**Spec:** .docs/specs/<feature-name>/<spec-name>.md
+**Spec:** <path-to-spec> (e.g., `.docs/specs/<feature-name>/<spec-name>.md`)
 **Goal:** [One sentence]
 **Architecture:** [2–3 sentences]
 **Tech Stack:** [Key technologies]
@@ -55,7 +55,7 @@ Before invoking, brief it with the spec content (Step 1), confirmed scope (Step 
 
 ## Step 4: Save and Update Spec
 
-Save to: `.docs/plans/<feature-name>/YYYY-MM-DD-<plan-name>.md`
+Save to: `<plan-dir>/<feature-name>/YYYY-MM-DD-<plan-name>.md` where `<plan-dir>` is the project's plan directory (typically `.docs/plans/` or `docs/plans/`).
 
 Confirm the save path with the user. **Wait for their confirmation before writing the file.**
 
