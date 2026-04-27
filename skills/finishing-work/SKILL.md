@@ -9,10 +9,6 @@ description: Use when about to commit, claim work is done, or completing a featu
 
 Pause before committing. Reflect on learnings, update docs, verify code, review code. No commit without this process.
 
-## Prerequisite
-
-Before running this skill, you should have already run `reviewing-code` on the full branch diff. If you haven't, run it now — `finishing-work` step 4 is a lightweight final check on staged changes, not a replacement for the full review-fix-verify loop.
-
 ## Process
 
 ### 1. Reflect on session learnings
