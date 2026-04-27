@@ -51,3 +51,4 @@ When implementation reveals a decision that deviates from the plan (different ap
 - Do not skip `using-git-worktrees` because "we're already on a feature branch"
 - Do not skip TDD because "this is a simple endpoint"
 - The full cycle runs in one flow — do not defer PR creation to "later"
+- Do not batch decision logging — invoke `logging-decisions` immediately when a deviation occurs, not at the end of the session

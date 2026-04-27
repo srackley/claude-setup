@@ -66,7 +66,7 @@ Your reply text here
 EOF
 )
 gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies \
-  --field body="$reply"
+  --raw-field body="$reply"
 ```
 
 ### 7. Post Only After User Approval
