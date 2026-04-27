@@ -2,7 +2,8 @@
 # PreToolUse hook on Bash — blocks git commit without required skill invocations.
 #
 # Parses the session transcript (JSONL) to verify that finishing-work and a
-# session-notes write were performed before allowing a commit.
+# session-notes write were performed before allowing a commit. On success,
+# outputs a reminder to invoke logging-decisions if executing a plan.
 #
 # reviewing-code is enforced at PR creation time (pr-gate.sh), not per-commit.
 #
@@ -180,5 +181,5 @@ EOF
 fi
 
 # All checks passed — auto-approve (no manual permission prompt)
-echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","permissionDecisionReason":"All commit requirements verified: finishing-work, session-notes"}}'
+echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","permissionDecisionReason":"All commit requirements verified: finishing-work, session-notes. Reminder: if executing a plan, invoke the logging-decisions skill to record any plan deviations made this session."}}'
 exit 0
