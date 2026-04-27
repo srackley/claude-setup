@@ -1,5 +1,6 @@
 ---
-description: Create a new feature spec from the project template
+name: create-spec
+description: Use when creating a new feature specification. Surfaces architectural constraints, runs brainstorming, gap-checks, and generates spec from template.
 ---
 
 # Create Feature Spec

@@ -1,5 +1,6 @@
 ---
-description: Create a new Architecture Decision Record
+name: create-adr
+description: Use when recording an architecture decision. Asks for context, generates from template, handles supersession.
 ---
 
 # Create ADR
