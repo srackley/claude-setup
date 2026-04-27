@@ -33,6 +33,8 @@ If the issue has no labels, ask the user for the branch prefix.
 ### 5. Implement with TDD
 **REQUIRED:** Invoke `superpowers:test-driven-development`. Write tests first, watch them fail, then implement.
 
+When implementation reveals a decision that deviates from the plan (different approach, scope change, deferred item), invoke `logging-decisions` to record it immediately — not batched at session end.
+
 ### 6. Finish Work
 **REQUIRED:** Invoke `finishing-work` skill. This handles commit hygiene, lint, and final checks. Do not skip this even if you already committed — the skill may catch issues.
 
