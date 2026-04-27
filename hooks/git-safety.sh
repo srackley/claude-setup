@@ -46,13 +46,13 @@ fi
 # Check per-line so --force-with-lease on one line can't excuse --force on another.
 # The || [[ -n "$line" ]] handles the last line when it has no trailing newline.
 while IFS= read -r line || [[ -n "$line" ]]; do
-  if echo "$line" | grep -qE 'git\s+push\b.*([^-]-f\b|[^-]-f[a-zA-Z]|--force( |$)|[ \t]\+[^ ]+)'; then
+  if echo "$line" | grep -qE 'git\s+push\b.*( -f\b|--force( |$)|[ \t]\+[^ ]+)'; then
     if ! echo "$line" | grep -q -- '--force-with-lease'; then
       echo "BLOCKED: Force push is not allowed. Use --force-with-lease or ask the user." >&2
       exit 2
     fi
     # --force alongside --force-with-lease overrides the lease check in git
-    if echo "$line" | grep -qE '(^| )(-f\b|-f[a-zA-Z]|--force( |$))'; then
+    if echo "$line" | grep -qE '(^| )(-f\b|--force( |$))'; then
       echo "BLOCKED: --force overrides --force-with-lease. Use --force-with-lease alone." >&2
       exit 2
     fi

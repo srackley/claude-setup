@@ -16,6 +16,11 @@ HOOK="$BATS_TEST_DIRNAME/../git-safety.sh"
     run_and_assert_blocked "$input" "$HOOK"
 }
 
+@test "blocks git push -f when flag appears at end of line" {
+    input=$(build_bash_input "git push origin feature-branch -f")
+    run_and_assert_blocked "$input" "$HOOK"
+}
+
 @test "blocks git push --force alongside --force-with-lease" {
     input=$(build_bash_input "git push --force-with-lease --force origin feature-branch")
     run_and_assert_blocked "$input" "$HOOK"
@@ -25,6 +30,21 @@ HOOK="$BATS_TEST_DIRNAME/../git-safety.sh"
 
 @test "allows git push --force-with-lease alone" {
     input=$(build_bash_input "git push --force-with-lease origin feature-branch")
+    run_and_assert_allowed "$input" "$HOOK"
+}
+
+@test "allows push to branch whose name contains -f substring (e.g. skill-followups)" {
+    input=$(build_bash_input "git push origin chore/skill-followups")
+    run_and_assert_allowed "$input" "$HOOK"
+}
+
+@test "allows push with -C path when branch name contains -f substring" {
+    input=$(build_bash_input "git -C /Users/me/.claude/.worktrees/chore-skill-followups push origin chore/skill-followups")
+    run_and_assert_allowed "$input" "$HOOK"
+}
+
+@test "allows push --force-with-lease to branch with -f substring" {
+    input=$(build_bash_input "git push --force-with-lease origin chore/skill-followups")
     run_and_assert_allowed "$input" "$HOOK"
 }
 

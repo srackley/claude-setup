@@ -59,6 +59,16 @@ Apply fixes one at a time. Run tests after each fix.
 
 Reply in the comment thread (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`), not as top-level PR comments.
 
+**Use a variable for the body field** — `--field body="..."` causes backticks to be shell-interpolated and stripped. Assign via heredoc first:
+```bash
+reply=$(cat <<'EOF'
+Your reply text here
+EOF
+)
+gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies \
+  --raw-field body="$reply"
+```
+
 ### 7. Post Only After User Approval
 
 Show all drafted replies to user. Post only after explicit approval.
