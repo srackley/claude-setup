@@ -21,6 +21,11 @@ HOOK="$BATS_TEST_DIRNAME/../git-safety.sh"
     run_and_assert_blocked "$input" "$HOOK"
 }
 
+@test "blocks git push with merged -f flag (e.g. -fu)" {
+    input=$(build_bash_input "git push -fu origin feature-branch")
+    run_and_assert_blocked "$input" "$HOOK"
+}
+
 @test "blocks git push --force alongside --force-with-lease" {
     input=$(build_bash_input "git push --force-with-lease --force origin feature-branch")
     run_and_assert_blocked "$input" "$HOOK"
