@@ -13,7 +13,7 @@ fi
 # Don't background targeted single-file test runs — they produce bounded output
 # and need a real exit code for the TDD state machine to advance correctly.
 # Scoped to "task test" only (not lint, not test-e2e) since those run slow.
-if echo "$COMMAND" | grep -qE '(^|/)task test[[:space:]].*\.(test|spec)\.(ts|tsx|js|jsx)'; then
+if echo "$COMMAND" | grep -qE 'task test[[:space:]].*\.(test|spec)\.(ts|tsx|js|jsx)'; then
   exit 0
 fi
 

@@ -155,3 +155,9 @@ assert_foreground() {
     output=$(echo "$input" | bash "$HOOK")
     assert_backgrounded "$output"
 }
+
+@test "cd prefix before task test with file path is NOT backgrounded" {
+    input=$(build_bg_input "cd /some/dir && task test -- run src/features/foo/bar.test.ts")
+    output=$(echo "$input" | bash "$HOOK")
+    assert_foreground "$output"
+}
