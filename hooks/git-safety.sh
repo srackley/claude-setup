@@ -1,7 +1,8 @@
 #!/bin/bash
 # Blocks dangerous git operations: force push, reset --hard, --no-verify, push to main.
-# Auto-approves safe non-destructive commands (status, diff, log, branch, fetch, rev-parse,
-# remote, show) to reduce permission prompts.
+# Auto-approves safe read-only commands (status, diff, log, fetch, rev-parse, show)
+# to reduce permission prompts. branch and remote are NOT auto-approved — both have
+# destructive subcommands (branch -D, remote remove/set-url).
 
 set -euo pipefail
 
@@ -75,9 +76,9 @@ if echo "$SPLIT_LINES" | grep -qE 'git\s+.*--no-verify'; then
   exit 2
 fi
 
-# Block push to main/master — positional arg, +refspec prefix, colon refspec (HEAD:main),
-# or full refs/heads/main path.
-if echo "$SPLIT_LINES" | grep -qE 'git\s+push\s+(origin\s+)?\+?(main|master)\b|git\s+push\s+.*:(main|master)\b|git\s+push\s+.*/heads/(main|master)\b'; then
+# Block push to main/master — positional arg (any remote name), +refspec prefix,
+# colon refspec (HEAD:main), or full refs/heads/main path.
+if echo "$SPLIT_LINES" | grep -qE 'git\s+push\s+(\S+\s+)?\+?(main|master)\b|git\s+push\s+.*:(main|master)\b|git\s+push\s+.*/heads/(main|master)\b'; then
   echo "BLOCKED: Direct push to main/master. Create a PR instead." >&2
   exit 2
 fi
@@ -89,7 +90,7 @@ fi
 
 # Safe git commands — auto-approve only when ALL split commands are on the safe list.
 # stdout must stay clean for this JSON to parse; send any debug output to >&2.
-if ! echo "$SPLIT_LINES" | grep -vE 'git\s+(status|diff|log|branch|fetch|rev-parse|remote|show)\b' | grep -qE '^\s*git\s+'; then
+if ! echo "$SPLIT_LINES" | grep -vE 'git\s+(status|diff|log|fetch|rev-parse|show)\b' | grep -qE '^\s*git\s+'; then
   cat <<EOF
 {
   "hookSpecificOutput": {
