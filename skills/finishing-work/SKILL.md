@@ -53,7 +53,12 @@ Invoke the `verifying` skill. It handles running the project's full verification
 
 ### 4. Run code review
 
-After verification passes, invoke `code-reviewer` on the staged changes (run `git diff --cached` to get the diff).
+After verification passes, run **both** reviewers on the staged changes (run `git diff --cached` to get the diff):
+
+1. **`code-reviewer`** — checks conventions, style, and obvious bugs against project guidelines
+2. **`adversarial-reviewer`** — assumes the code is wrong and tries to find concrete failure scenarios
+
+Run them in parallel. Address findings from both before committing.
 
 This is **not optional.** Verification (lint/types/tests) checks that code is mechanically correct. Code review checks that it is logically correct — catching bugs, security issues, logic errors, and convention violations that automated checks miss.
 
