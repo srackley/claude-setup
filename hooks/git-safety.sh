@@ -76,9 +76,9 @@ if echo "$SPLIT_LINES" | grep -qE 'git\s+.*--no-verify'; then
   exit 2
 fi
 
-# Block push to main/master — positional arg (any remote name), +refspec prefix,
+# Block push to main/master — any remote name and flags before the branch, +refspec prefix,
 # colon refspec (HEAD:main), or full refs/heads/main path.
-if echo "$SPLIT_LINES" | grep -qE 'git\s+push\s+(\S+\s+)?\+?(main|master)\b|git\s+push\s+.*:(main|master)\b|git\s+push\s+.*/heads/(main|master)\b'; then
+if echo "$SPLIT_LINES" | grep -qE 'git\s+push\s+(\S+\s+)*\+?(main|master)\b|git\s+push\s+.*:(main|master)\b|git\s+push\s+.*/heads/(main|master)\b'; then
   echo "BLOCKED: Direct push to main/master. Create a PR instead." >&2
   exit 2
 fi
