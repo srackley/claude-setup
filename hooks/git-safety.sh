@@ -25,13 +25,18 @@ if [ -z "$GIT_LINES" ]; then
   exit 0
 fi
 
-# Normalize: strip global git path options so the subcommand pattern matches.
+# Normalize: strip global git path options and flags so the subcommand pattern matches.
 # -C, --git-dir, --work-tree all appear before the subcommand in the same position.
 # Three passes for -C; four for --git-dir/--work-tree (which also support = syntax).
+# -c key=val, --no-pager, --bare, --exec-path are also leading global flags git accepts.
 NORMALIZED_LINES=$(echo "$GIT_LINES" \
   | sed "s/ -C '[^']*'//g"          | sed 's/ -C "[^"]*"//g'          | sed 's/ -C [^ ]*//g' \
   | sed "s/ --git-dir '[^']*'//g"   | sed 's/ --git-dir "[^"]*"//g'   | sed 's/ --git-dir=[^ ]*//g'   | sed 's/ --git-dir [^ ]*//g' \
-  | sed "s/ --work-tree '[^']*'//g" | sed 's/ --work-tree "[^"]*"//g' | sed 's/ --work-tree=[^ ]*//g' | sed 's/ --work-tree [^ ]*//g')
+  | sed "s/ --work-tree '[^']*'//g" | sed 's/ --work-tree "[^"]*"//g' | sed 's/ --work-tree=[^ ]*//g' | sed 's/ --work-tree [^ ]*//g' \
+  | sed 's/ -c [^ ]*//g' \
+  | sed 's/ --no-pager//g' \
+  | sed 's/ --bare//g' \
+  | sed 's/ --exec-path[^ ]*//g')
 
 # Split on inline shell operators (;, |, &) so chained commands can't smuggle a force
 # push past a --force-with-lease on the same physical line. Re-filter for git commands.
@@ -78,7 +83,9 @@ fi
 
 # Block push to main/master — positional arg (any remote name), +refspec prefix,
 # colon refspec (HEAD:main), or full refs/heads/main path.
-if echo "$SPLIT_LINES" | grep -qE 'git\s+push\s+(\S+\s+)?\+?(main|master)\b|git\s+push\s+.*:(main|master)\b|git\s+push\s+.*/heads/(main|master)\b'; then
+# Strip surrounding quotes first so `git push origin 'main'` is not bypassed.
+DEQUOTED=$(echo "$SPLIT_LINES" | tr -d "'\"")
+if echo "$DEQUOTED" | grep -qE 'git\s+push\s+(\S+\s+)?\+?(main|master)\b|git\s+push\s+.*:(main|master)\b|git\s+push\s+.*/heads/(main|master)\b'; then
   echo "BLOCKED: Direct push to main/master. Create a PR instead." >&2
   exit 2
 fi
@@ -88,9 +95,12 @@ if echo "$SPLIT_LINES" | grep -qE 'git\s+push\s+.*(--mirror|--all)\b'; then
   exit 2
 fi
 
-# Safe git commands — auto-approve only when ALL split commands are on the safe list.
+# Safe git commands — auto-approve only when ALL fragments (including non-git ones) are safe.
+# Use ALL_SPLIT (not SPLIT_LINES) because SPLIT_LINES is already filtered to git-only; non-git
+# fragments chained with ; | & < > would be invisible to a SPLIT_LINES check and auto-approved.
 # stdout must stay clean for this JSON to parse; send any debug output to >&2.
-if ! echo "$SPLIT_LINES" | grep -vE 'git\s+(status|diff|log|fetch|rev-parse|show)\b' | grep -qE '^\s*git\s+'; then
+ALL_SPLIT=$(echo "$NORMALIZED_LINES" | sed 's/&&/\n/g' | sed 's/||/\n/g' | sed 's/[;|&<>]/\n/g' | grep -vE '^\s*$' || true)
+if [ -n "$ALL_SPLIT" ] && ! echo "$ALL_SPLIT" | grep -vE '^\s*git\s+(status|diff|log|fetch|rev-parse|show)\b' | grep -qE '^\s*\S'; then
   cat <<EOF
 {
   "hookSpecificOutput": {
