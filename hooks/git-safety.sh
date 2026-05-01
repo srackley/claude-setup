@@ -85,7 +85,7 @@ fi
 # colon refspec (HEAD:main), or full refs/heads/main path.
 # Strip surrounding quotes first so `git push origin 'main'` is not bypassed.
 DEQUOTED=$(echo "$SPLIT_LINES" | tr -d "'\"")
-if echo "$DEQUOTED" | grep -qE 'git\s+push\s+(\S+\s+)?\+?(main|master)\b|git\s+push\s+.*:(main|master)\b|git\s+push\s+.*/heads/(main|master)\b'; then
+if echo "$DEQUOTED" | grep -qE 'git\s+push\s+(\S+\s+)*\+?(main|master)\b|git\s+push\s+.*:(main|master)\b|git\s+push\s+.*/heads/(main|master)\b'; then
   echo "BLOCKED: Direct push to main/master. Create a PR instead." >&2
   exit 2
 fi
