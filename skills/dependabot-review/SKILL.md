@@ -24,6 +24,9 @@ digraph dependabot_review {
     "Check CI status for each" [shape=box];
     "Read PR body for changes" [shape=box];
     "Assess risk level" [shape=diamond];
+    "Major version bump on runtime dep?" [shape=diamond];
+    "Read migration guide + grep codebase usage" [shape=box];
+    "Surface required code changes" [shape=box];
     "Group related packages" [shape=box];
     "Approve safe PRs" [shape=box];
     "Merge one at a time" [shape=box];
@@ -33,8 +36,12 @@ digraph dependabot_review {
     "List open dependabot PRs" -> "Check CI status for each";
     "Check CI status for each" -> "Read PR body for changes";
     "Read PR body for changes" -> "Assess risk level";
+    "Assess risk level" -> "Major version bump on runtime dep?" [label="high"];
     "Assess risk level" -> "Group related packages" [label="low/medium"];
-    "Assess risk level" -> "Flag for human" [label="high"];
+    "Major version bump on runtime dep?" -> "Read migration guide + grep codebase usage" [label="yes"];
+    "Major version bump on runtime dep?" -> "Group related packages" [label="no"];
+    "Read migration guide + grep codebase usage" -> "Surface required code changes";
+    "Surface required code changes" -> "Group related packages";
     "Group related packages" -> "Approve safe PRs";
     "Approve safe PRs" -> "Merge one at a time";
     "Merge one at a time" -> "Request rebase on remaining";
@@ -51,6 +58,24 @@ digraph dependabot_review {
 | **Version**  | patch (x.x.1→x.x.2)        | minor (x.1→x.2)        | major (1.x→2.x)                |
 | **Package**  | linters, formatters, types | build tools, test libs | framework, runtime             |
 | **Changes**  | bug fixes, types           | new features           | breaking changes, deprecations |
+
+### Major Version Bumps on Runtime Dependencies: Required Migration Check
+
+**CI passing is not enough.** CI proves the code compiles — it does not prove behavior is unchanged. A new default, a renamed config option, or a removed implicit behavior will pass CI and silently break production.
+
+For every major bump on a runtime/production dependency, before recommending merge:
+
+1. **Read the migration guide.** The PR body usually links one. If not, fetch the package's GitHub releases page for the version range. Use the `docs-researcher` agent.
+
+2. **Grep the codebase for all imports from the package.** Find every file and every API call.
+
+3. **Cross-reference each 💥 breaking change against actual usage.** Be explicit: "Codebase uses X — affected" or "Codebase does not use X — not affected."
+
+4. **Surface required code changes.** If a breaking change affects the codebase, name the files and the exact fix needed. Do not just hand it to the user and say "needs review."
+
+5. **Call out silent behavioral changes.** Some breaking changes don't cause compile errors but change runtime behavior (e.g., a config flag that now does less, new opt-in defaults). Call these out even if CI is green.
+
+**The rationalization to resist:** "CI passes and my initial review says it looks fine." That's how you miss a config option that silently stops forwarding errors to your logging provider.
 
 ### Always Flag for Human Review
 
