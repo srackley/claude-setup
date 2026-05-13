@@ -13,7 +13,6 @@ Every story MUST have a play function with assertions. No exceptions for "minima
 
 1. **Read an existing story file first** (mandatory) - Check patterns in project's existing stories
 2. **Write stories with play functions** - Every story gets assertions
-3. **Include CustomClassName story** - Verifies className prop works (for components that accept it)
 
 ## Play Function Requirement
 
@@ -58,20 +57,6 @@ play: async ({ canvasElement }) => {
     // Portal content - use screen, not canvas
     const tooltip = await screen.findByText('Tooltip text');
     await expect(tooltip).toBeInTheDocument();
-};
-```
-
-### Custom class verification
-```tsx
-export const CustomClassName: Story = {
-    args: {
-        className: 'border-2 border-blue-500 rounded-lg',
-    },
-    play: async ({ canvasElement }) => {
-        const canvas = within(canvasElement);
-        const element = canvas.getByRole('textbox');
-        await expect(element).toHaveClass('border-blue-500');
-    },
 };
 ```
 
