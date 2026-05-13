@@ -82,7 +82,7 @@ if [[ "$filename" == *.stories.tsx ]] || [[ "$filename" == *.stories.ts ]]; then
         exit 0
     fi
     cat << 'EOF'
-{"decision": "block", "reason": "STOP: You are editing a Storybook story file.\n\n**MANDATORY:** Invoke the `storybook-stories` skill first.\n\nKey requirements:\n- Every story MUST have a play function with assertions\n- No exceptions for 'minimal' or 'quick' stories\n- Include CustomClassName story for className prop verification\n\nRead the skill before proceeding."}
+{"decision": "block", "reason": "STOP: You are editing a Storybook story file.\n\n**MANDATORY:** Invoke the `storybook-stories` skill first.\n\nKey requirements:\n- Every story MUST have a play function with assertions\n- No exceptions for 'minimal' or 'quick' stories\n\nRead the skill before proceeding."}
 EOF
     exit 0
 fi
