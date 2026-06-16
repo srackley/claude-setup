@@ -11,6 +11,24 @@ import sys
 from pathlib import Path
 
 
+# pnpm's own built-in subcommands — not binary shorthands.
+# "pnpm vitest" runs node_modules/.bin/vitest; "pnpm add" is pnpm itself.
+PNPM_BUILT_IN_COMMANDS = frozenset({
+    "add", "remove", "rm", "uninstall", "un",
+    "install", "i", "ci",
+    "update", "up", "upgrade",
+    "link", "unlink",
+    "import", "dedupe", "prune", "fetch",
+    "patch", "patch-commit", "patch-remove",
+    "run", "exec", "dlx", "create",
+    "start", "test", "t", "build", "restart", "stop",
+    "list", "ls", "outdated", "why", "audit", "licenses",
+    "store", "root", "bin", "env", "pack", "publish", "config",
+    "init", "rebuild", "server", "setup", "self-update",
+    "global", "g",
+})
+
+
 def find_taskfile() -> Path | None:
     """Find Taskfile.yml or Taskfile.yaml in current directory or parents."""
     cwd = Path.cwd()
@@ -46,6 +64,12 @@ def is_package_manager_command(command: str) -> tuple[bool, str]:
         if re.match(pattern, command):
             return True, pm
 
+    # pnpm binary shorthand: "pnpm vitest", "pnpm tsc", etc.
+    # These invoke node_modules/.bin/ directly, not pnpm's own subcommands.
+    m = re.match(r"^pnpm\s+([a-zA-Z][a-zA-Z0-9_-]*)", command)
+    if m and m.group(1) not in PNPM_BUILT_IN_COMMANDS:
+        return True, "pnpm"
+
     return False, ""
 
 
@@ -80,26 +104,15 @@ def extract_core_command(command: str) -> str:
     return cmd
 
 
-def find_wrapping_task(core_command: str, taskfile_path: Path) -> str | None:
-    """Find which task wraps the given core command.
-
-    Parses task blocks in the Taskfile and checks if the core command appears
-    in any task's body. Returns the task name if found, None otherwise.
-    """
-    try:
-        content = taskfile_path.read_text()
-    except Exception:
+def _scan_taskfile_for_command(command: str, content: str) -> str | None:
+    """Find the task name whose body contains the given command string."""
+    if command not in content:
         return None
 
-    if core_command not in content:
-        return None
-
-    # Parse task blocks to find which task contains this command
     current_task = None
     yaml_keys = {"version", "tasks", "vars", "env", "includes", "output", "silent"}
 
     for line in content.splitlines():
-        # Match top-level task definitions (2-space indent under tasks:)
         task_match = re.match(r"^  ([\w][\w-]*):", line)
         if task_match:
             name = task_match.group(1)
@@ -107,8 +120,52 @@ def find_wrapping_task(core_command: str, taskfile_path: Path) -> str | None:
                 current_task = name
             continue
 
-        if current_task and core_command in line:
+        if current_task and command in line:
             return current_task
+
+    return None
+
+
+def _pkg_scripts_for_binary(binary: str, project_root: Path) -> list[str]:
+    """Return package.json script names that invoke the given binary."""
+    pkg = project_root / "package.json"
+    if not pkg.exists():
+        return []
+    try:
+        data = json.loads(pkg.read_text())
+    except Exception:
+        return []
+    scripts = data.get("scripts", {})
+    pattern = r"\b" + re.escape(binary) + r"\b"
+    return [name for name, cmd in scripts.items() if re.search(pattern, cmd)]
+
+
+def find_wrapping_task(core_command: str, taskfile_path: Path) -> str | None:
+    """Find which task wraps the given core command.
+
+    Parses task blocks in the Taskfile and checks if the core command appears
+    in any task's body. For pnpm binary shorthands (e.g. "pnpm vitest"), also
+    tries the package.json script chain: binary → npm script → pnpm run <script>.
+    Returns the task name if found, None otherwise.
+    """
+    try:
+        content = taskfile_path.read_text()
+    except Exception:
+        return None
+
+    task = _scan_taskfile_for_command(core_command, content)
+    if task:
+        return task
+
+    # For pnpm binary shorthands, try the package.json chain.
+    # Example: "pnpm vitest" → pkg.json "test": "vitest" → Taskfile "pnpm run test"
+    bin_match = re.match(r"^pnpm\s+([a-zA-Z][a-zA-Z0-9_-]+)$", core_command)
+    if bin_match:
+        binary = bin_match.group(1)
+        for script_name in _pkg_scripts_for_binary(binary, taskfile_path.parent):
+            task = _scan_taskfile_for_command(f"pnpm run {script_name}", content)
+            if task:
+                return task
 
     return None
 
