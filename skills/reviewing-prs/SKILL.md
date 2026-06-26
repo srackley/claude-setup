@@ -29,8 +29,8 @@ digraph reviewing_prs {
     "Determine scope" -> "Check out PR branch in worktree";
     "Check out PR branch in worktree" -> "Gather context (diff, comments, linked issues, specs)";
     "Gather context (diff, comments, linked issues, specs)" -> "Summarize to user";
-    "Summarize to user" -> "Launch 5 agents (parallel, scoped context)";
-    "Launch 5 agents (parallel, scoped context)" -> "Collect + deduplicate findings";
+    "Summarize to user" -> "Launch 2 agents (parallel, scoped context)";
+    "Launch 2 agents (parallel, scoped context)" -> "Collect + deduplicate findings";
     "Collect + deduplicate findings" -> "Verify each finding (verified-analysis)";
     "Verify each finding (verified-analysis)" -> "Classify: severity + validity";
     "Classify: severity + validity" -> "Challenge VALID findings (parallel challengers)";
@@ -121,15 +121,10 @@ This context stays with the main agent for synthesis. Do not pass linked issue t
 
 ## Step 5: Launch Agents
 
-All 5 review agents in parallel via Task tool (background). Each gets only what it needs for its job, plus the absolute worktree path so they read the PR code, not the currently checked-out branch:
+2 review agents in parallel via Task tool (background). Each gets only what it needs for its job, plus the absolute worktree path so they read the PR code, not the currently checked-out branch:
 
-| Agent | Receives |
-|-------|----------|
-| `code-reviewer` | diff + worktree path |
-| `silent-failure-hunter` | diff + worktree path |
-| `type-design-analyzer` | diff + worktree path |
-| `pr-test-analyzer` | diff + PR title/description + worktree path |
-| `comment-analyzer` | diff + PR comments + worktree path |
+1. **`code-reviewer`** — checks conventions, style, and obvious bugs against project guidelines
+2. **`adversarial-reviewer`** — assumes the code is wrong and tries to find concrete failure scenarios
 
 ## Step 6: Deduplicate
 

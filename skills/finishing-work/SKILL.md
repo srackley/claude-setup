@@ -51,24 +51,9 @@ Invoke the `verifying` skill. It handles running the project's full verification
 
 **Do not skip this step.** Do not proceed to commit until all pass.
 
-### 4. Run code review
+### 4. Commit with evidence
 
-After verification passes, run **both** reviewers on the staged changes (run `git diff --cached` to get the diff):
-
-1. **`code-reviewer`** — checks conventions, style, and obvious bugs against project guidelines
-2. **`adversarial-reviewer`** — assumes the code is wrong and tries to find concrete failure scenarios
-
-Run them in parallel. Address findings from both before committing.
-
-This is **not optional.** Verification (lint/types/tests) checks that code is mechanically correct. Code review checks that it is logically correct — catching bugs, security issues, logic errors, and convention violations that automated checks miss.
-
-**Do not skip this step.** Do not proceed to commit until review is complete and findings are addressed.
-
-**This is not "the PR reviewer's job."** Waiting until PR creation to catch logic errors means you build on flawed foundations for hours. Review each commit incrementally so problems are caught when they're cheap to fix.
-
-### 5. Commit with evidence
-
-Only after verification AND code review pass, commit with actual output:
+Only after verification pass, commit with actual output:
 
 ```
 lint: ✓
@@ -86,12 +71,10 @@ tests: 52/52 passed
 ## Red Flags - STOP
 
 - About to run `git commit` without running verification
-- About to run `git commit` without running code review
 - "It's just docs" - docs changes can break linting
 - "Quick change" - quick changes break too
 - "I already know it works" - prove it with commands
 - About to say "done" without verification output
-- "Code review is for PRs, not commits" - catch problems early, not late
 - "Automated review can't catch real issues" - it catches bugs, security holes, and logic errors you missed
 
 ## Rationalizations
@@ -102,11 +85,8 @@ tests: 52/52 passed
 | "I ran this earlier"        | State changes. Run again before commit. |
 | "Nothing could have broken" | Prove it. Run verification.             |
 | "Quick commit"              | Quick commits cause slow debugging.     |
-| "I'll verify after"         | After never comes. Verify now.          |
-| "Code review belongs on the PR" | By then you've built 8 commits on a flawed foundation. Review each commit. |
-| "Automated review adds friction, not value" | It catches bugs, security holes, and logic errors. Friction is the point. |
-| "The commit is just a checkpoint" | A checkpoint with unreviewed logic errors is a checkpoint you'll regret. |
+| "I'll verify after"         | After never comes. Verify now.         
 
 ## The Rule
 
-**No `git commit` without fresh verification output AND code review in this session.**
+**No `git commit` without fresh verification output.**

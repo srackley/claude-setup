@@ -20,23 +20,7 @@ When debugging, if your first two approaches fail, STOP. Explain what you tried,
 - **PR reviews require user sign-off.** Never post reviews or approvals without showing the user first.
 - **PR descriptions from branch diff,** not memory. Follow templates honestly.
 
-## Skills
-Always invoke skills using the Skill tool. Reading a skill file is not a substitute. Never rationalize skipping a skill because you recall its contents.
-
-These skills are NOT enforced by hooks — invoke manually:
-
-| Trigger | Skill |
-|---------|-------|
-| Before ANY PR creation | `creating-pr` |
-| Before ANY design/creative work | `superpowers:brainstorming` |
-| Before reviewing someone else's PR | `reviewing-prs` |
-| Before claiming work is done | `superpowers:verification-before-completion` |
-
-Hook-enforced skills (TDD, creating-component, storybook-stories, writing-skills, writing-plans, finishing-work, no-edit-on-main, reviewing-code) are omitted — hooks block if skipped.
-
 ## Tools & Conventions
-
-**Git:** Never use `cd <path> && git <cmd>`. Use `git -C <path> <cmd>` instead.
 
 **Bash:** Never run unbounded-output commands in foreground (`gh run watch`, `tail -f`). Background them and tail the log.
 

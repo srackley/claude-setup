@@ -25,7 +25,7 @@ Run the `finishing-work` skill first to ensure verification passes before creati
 
 Before creating the PR, invoke `reviewing-code` on the full branch diff (`git diff main...HEAD` or equivalent).
 
-This is **not optional.** The per-commit code reviews in `finishing-work` catch issues incrementally. This step reviews the complete change holistically — how all commits interact, cross-cutting concerns, test coverage gaps, and architectural issues that only appear at the full-diff level.
+This is **not optional.** This step reviews the complete change holistically — how all commits interact, cross-cutting concerns, test coverage gaps, and architectural issues that only appear at the full-diff level.
 
 **Do not skip this step.** Do not run `gh pr create` until the review is complete and findings are addressed.
 
@@ -82,74 +82,8 @@ Find issues linked to this PR (check PR body, branch name, commit messages for `
 
 **Checklist verification:** Before submitting, re-read each checklist item and ask "did I literally do this?" If the answer isn't a clear yes, leave the box unchecked and add `(N/A)` with a brief reason. A false checkmark is worse than an unchecked box.
 
-**Deploy URL:** Always add a `## Preview` section to the PR body with the deployment URL. Query the GitHub Deployments API after CI passes — never guess URLs.
-
-- **Vercel:** `gh api "repos/$REPO/deployments?ref=$SHA&per_page=1" --jq '.[0].id'` → then query statuses for `environment_url`
-- **EKS:** Same API, filter by `environment=dev`
-- If no deployment exists yet, add a placeholder: `> ⏳ Deploy URL will appear once the build completes.`
-
-### 5. Monitor CI Status
-
-Poll `gh pr checks` every 30 seconds until all checks complete:
-
-```bash
-gh pr checks <PR_NUMBER> --json name,state,conclusion
-```
-
-**On failure:** Report which check failed with link to the run.
-
-### 5. Update PR with Deploy URL
-
-After CI passes, query the GitHub Deployments API for the preview URL:
-
-```bash
-REPO="<OWNER/REPO>"
-SHA="<HEAD_SHA>"
-DEP_ID=$(gh api "repos/$REPO/deployments?sha=$SHA&per_page=1" --jq '.[0].id')
-URL=$(gh api "repos/$REPO/deployments/$DEP_ID/statuses" --jq '.[0] | select(.state == "success") | .environment_url')
-```
-
-This works for both Vercel and EKS — both create GitHub Deployments with `environment_url`. Query by SHA (not branch name) to avoid sanitization issues.
-
-If the PR body has a placeholder, replace it. If no `## Preview` section exists, add one after `## Summary`.
-
-### 6. Report Results
-
-**On success:**
-
-```
-PR created and CI passed!
-
-PR: https://github.com/org/repo/pull/123
-Deployment: https://app-branch.dev.example.com (updated in PR body ✅)
-
-All checks:
-  ✅ lint
-  ✅ test
-  ✅ deploy
-```
-
-**On failure:**
-
-```
-PR created but CI failed.
-
-PR: https://github.com/org/repo/pull/123
-
-Checks:
-  ✅ lint
-  ❌ test - https://github.com/org/repo/actions/runs/12345
-  ⏳ deploy (skipped)
-```
-
-## Timeout
-
-Stop polling after 15 minutes. Report current status and let user know they can check manually.
-
 ## Notes
 
 - If branch isn't pushed yet, push it first with `git push -u origin HEAD`
-- NEVER guess deploy URLs — always query the GitHub Deployments API
-- If the repo has no deployment integration at all, skip step 5 entirely
 - NEVER reference gitignored files (local design docs, session notes, etc.) in PR descriptions — reviewers can't see them
 - Write testing instructions for reviewers using `git checkout <branch>`, not `cd .worktrees/...` — reviewers won't have your worktree
