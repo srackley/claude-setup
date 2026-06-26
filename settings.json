@@ -1,11 +1,5 @@
 {
   "permissions": {
-    "additionalDirectories": [
-      "/Users/shelbyrackley/Wanderu/canopy",
-      "/Users/shelbyrackley/Wanderu/ui-react",
-      "/Users/shelbyrackley/Wanderu/nexus",
-      "/Users/shelbyrackley/polish-stash"
-    ],
     "allow": [
       "Bash(AWS_PROFILE=wanderu-dev task dev *)",
       "Bash(asdf install *)",
@@ -219,9 +213,14 @@
     "deny": [
       "Edit(**/*.po)",
       "Write(**/*.po)"
+    ],
+    "additionalDirectories": [
+      "/Users/shelbyrackley/Wanderu/canopy",
+      "/Users/shelbyrackley/Wanderu/ui-react",
+      "/Users/shelbyrackley/Wanderu/nexus",
+      "/Users/shelbyrackley/polish-stash"
     ]
   },
-  "model": "Sonnet",
   "hooks": {
     "SessionStart": [
       {
@@ -240,10 +239,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/commit-gate.sh"
-          },
-          {
-            "type": "command",
             "command": "~/.claude/hooks/enforce-permissions.py"
           },
           {
@@ -253,10 +248,6 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/prefer-task.py"
-          },
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/pr-gate.sh"
           },
           {
             "type": "command",
@@ -282,10 +273,6 @@
           },
           {
             "type": "command",
-            "command": "~/.claude/hooks/tdd-state-machine.sh"
-          },
-          {
-            "type": "command",
             "command": "~/.claude/hooks/session-notes-format.sh"
           }
         ]
@@ -304,10 +291,6 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/skill-enforcement.sh"
-          },
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/tdd-state-machine.sh"
           },
           {
             "type": "command",
@@ -355,22 +338,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/tdd-state-advance.sh"
-          },
-          {
-            "type": "command",
             "command": "~/.claude/hooks/commit-success-marker.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUseFailure": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/tdd-state-advance.sh"
           }
         ]
       }
@@ -416,19 +384,25 @@
     "command": "~/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
-    "context7@claude-plugins-official": true,
+    "context7@claude-plugins-official": false,
     "feature-dev@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true,
-    "hookify@claude-plugins-official": true,
-    "playwright@claude-plugins-official": true,
-    "pr-review-toolkit@claude-plugins-official": false,
     "superpowers@superpowers-marketplace": true,
-    "supabase@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": false,
-    "ralph-loop@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "wayfinder@wayfinder": true
   },
-  "editor": "windsurf"
+  "extraKnownMarketplaces": {
+    "wayfinder": {
+      "source": {
+        "source": "github",
+        "repo": "wanderu/wayfinder"
+      }
+    }
+  },
+  "effortLevel": "high",
+  "skipWorkflowUsageWarning": true,
+  "skipAutoPermissionPrompt": true,
+  "editor": "windsurf",
+  "tui": "fullscreen"
 }
