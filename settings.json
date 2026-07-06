@@ -253,6 +253,10 @@
             "type": "command",
             "command": "~/.claude/hooks/background-heavy-commands.sh",
             "if": "Bash(task *)"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/no-bare-issue-refs.py"
           }
         ]
       },
@@ -401,8 +405,8 @@
     }
   },
   "effortLevel": "high",
+  "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
   "skipAutoPermissionPrompt": true,
-  "editor": "windsurf",
-  "tui": "fullscreen"
+  "editor": "windsurf"
 }
