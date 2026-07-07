@@ -2,8 +2,7 @@
 
 load helpers
 
-# The extract_timeline function is sourced from commit-gate.sh.
-# We test it by calling the extraction script directly.
+# Tests extract-timeline.sh by calling the extraction script directly.
 EXTRACTOR="$BATS_TEST_DIRNAME/../extract-timeline.sh"
 FIXTURES_DIR="$BATS_TEST_DIRNAME/fixtures"
 

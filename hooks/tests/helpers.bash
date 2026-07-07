@@ -303,26 +303,6 @@ build_post_bash_failure() {
         }'
 }
 
-# Create a TDD state file with given state. Returns the file path.
-# Usage: state_file=$(create_tdd_state "TDD-RED")
-create_tdd_state() {
-    local state="$1"
-    local tmpfile
-    tmpfile=$(mktemp /tmp/claude-tdd-state-test-XXXXXX)
-    jq -n \
-        --arg s "$state" \
-        --arg t "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-        '{ state: $s, updated_at: $t }' > "$tmpfile"
-    echo "$tmpfile"
-}
-
-# Read the state from a TDD state file.
-# Usage: state=$(read_tdd_state "$state_file")
-read_tdd_state() {
-    local state_file="$1"
-    jq -r '.state' "$state_file" 2>/dev/null
-}
-
 # Build a PreToolUse hook input JSON for Bash with session_id and transcript_path.
 # Usage: build_bash_input_with_session "gh pr create" "/path/to/transcript.jsonl" "my-session-id"
 build_bash_input_with_session() {
@@ -349,17 +329,6 @@ add_issue_comment_to_transcript() {
     local issue_number="${2:-42}"
     jq -n -c --arg cmd "gh issue comment ${issue_number} --body \"Progress: implemented the thing\"" \
         '{"type":"tool_use","tool_name":"Bash","tool_input":{"command":$cmd}}' >> "$tmpfile"
-}
-
-# Create a marker file simulating a successful prior commit at the current
-# transcript length. Mirrors what commit-success-marker.sh does on PostToolUse.
-# Usage: create_commit_marker "$session_id" "$transcript"
-create_commit_marker() {
-    local session_id="$1"
-    local transcript="$2"
-    local line_count
-    line_count=$(wc -l < "$transcript" | tr -d ' ')
-    echo "$line_count" > "/tmp/last-commit-${session_id}.line"
 }
 
 # Append a Write tool call for the PR verification file to a transcript.
