@@ -32,4 +32,4 @@ When debugging, if your first two approaches fail, STOP. Explain what you tried,
 - `~/.claude/projects/<project>/memory/handoffs/<name>.md` — transient cross-session handoff docs. Overwrite each session, delete once actioned.
 - `~/.claude/session-notes/` — permanent historical record. Never delete.
 
-**Worktrees:** Pull latest (`git pull`) before working in any existing worktree. Create inside `.worktrees/`, never at parent level.
+**Worktrees:** Prefer the native worktree tool (`EnterWorktree`) over manual `git worktree add` — it handles placement, isolation, and cleanup. Pull latest (`git pull`) before working in any existing worktree.
