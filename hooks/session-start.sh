@@ -128,7 +128,10 @@ dev_server_patterns=("storybook.*start" "vite" "next.*dev" "webpack.*serve" "rea
 for pattern in "${dev_server_patterns[@]}"; do
     pids=$(pgrep -f "$pattern" 2>/dev/null || true)
     if [[ -n "$pids" ]]; then
-        orphan_warnings+="- **dev server** (\`$pattern\`, PIDs: $pids) — \`kill $pids\`\n"
+        for pid in $pids; do
+            cwd=$(lsof -p "$pid" -a -d cwd -Fn 2>/dev/null | sed -n 's/^n//p' | tail -1) || true
+            orphan_warnings+="- **dev server** (\`$pattern\`, PID $pid, cwd: \`${cwd:-unknown}\`) — another session may still own this; verify before killing: \`kill $pid\`\n"
+        done
     fi
 done
 
@@ -147,7 +150,7 @@ done < <(pgrep -f "playwright-mcp" 2>/dev/null | xargs -I{} ps -p {} -o pid=,eti
 
 if [[ "$stale_playwright_count" -gt 0 ]]; then
     stale_playwright_pids=$(echo "$stale_playwright_pids" | xargs)
-    orphan_warnings+="- **$stale_playwright_count stale Playwright MCP processes** (1h+) — \`kill $stale_playwright_pids\`\n"
+    orphan_warnings+="- **$stale_playwright_count stale Playwright MCP processes** (1h+, PIDs: $stale_playwright_pids) — another session may still own these; verify with \`lsof -p <pid> -a -d cwd\` before killing\n"
 fi
 
 if [[ -n "$orphan_warnings" ]]; then
