@@ -104,6 +104,70 @@ HOOK="$BATS_TEST_DIRNAME/../git-safety.sh"
     run_and_assert_blocked "$input" "$HOOK"
 }
 
+# --- git stash: blocked (mutates the shared, cross-worktree stash stack) ---
+
+@test "blocks bare git stash" {
+    input=$(build_bash_input "git stash")
+    run_and_assert_blocked "$input" "$HOOK"
+}
+
+@test "blocks git stash push" {
+    input=$(build_bash_input "git stash push -m 'wip'")
+    run_and_assert_blocked "$input" "$HOOK"
+}
+
+@test "blocks git stash save" {
+    input=$(build_bash_input "git stash save 'wip'")
+    run_and_assert_blocked "$input" "$HOOK"
+}
+
+@test "blocks git stash pop" {
+    input=$(build_bash_input "git stash pop")
+    run_and_assert_blocked "$input" "$HOOK"
+}
+
+@test "blocks git stash apply" {
+    input=$(build_bash_input "git stash apply stash@{0}")
+    run_and_assert_blocked "$input" "$HOOK"
+}
+
+@test "blocks git stash drop" {
+    input=$(build_bash_input "git stash drop stash@{0}")
+    run_and_assert_blocked "$input" "$HOOK"
+}
+
+@test "blocks git stash clear" {
+    input=$(build_bash_input "git stash clear")
+    run_and_assert_blocked "$input" "$HOOK"
+}
+
+@test "blocks git stash branch" {
+    input=$(build_bash_input "git stash branch recovered-work stash@{0}")
+    run_and_assert_blocked "$input" "$HOOK"
+}
+
+@test "blocks git stash push with -C path" {
+    input=$(build_bash_input "git -C /Users/me/canopy stash push -- .claude/hooks/main-branch-guard.sh")
+    run_and_assert_blocked "$input" "$HOOK"
+}
+
+@test "blocks git stash pop chained after git status with &&" {
+    input=$(build_bash_input "git status && git stash pop")
+    run_and_assert_blocked "$input" "$HOOK"
+}
+
+# --- git stash: allowed (read-only inspection) ---
+
+@test "allows git stash list" {
+    input=$(build_bash_input "git stash list")
+    run_and_assert_allowed "$input" "$HOOK"
+}
+
+@test "allows git stash show" {
+    input=$(build_bash_input "git stash show stash@{0}")
+    run_and_assert_allowed "$input" "$HOOK"
+}
+
 # --- Auto-approve safe read-only commands ---
 
 @test "auto-approves git status" {

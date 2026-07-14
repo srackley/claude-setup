@@ -1,5 +1,6 @@
 #!/bin/bash
-# Blocks dangerous git operations: force push, reset --hard, --no-verify, push to main.
+# Blocks dangerous git operations: force push, reset --hard, --no-verify, push to main,
+# mutating git stash commands.
 # Auto-approves safe read-only commands (status, diff, log, fetch, rev-parse, show)
 # to reduce permission prompts. branch and remote are NOT auto-approved — both have
 # destructive subcommands (branch -D, remote remove/set-url).
@@ -74,6 +75,23 @@ fi
 if echo "$SPLIT_LINES" | grep -qE 'git\s+.*--no-verify'; then
   echo "BLOCKED: --no-verify skips safety hooks. Fix the underlying issue instead." >&2
   exit 2
+fi
+
+# Block mutating git stash commands. refs/stash is ONE list shared by every
+# worktree of a repo (main checkout + all linked worktrees) -- it is not scoped
+# to the worktree you ran the command from. A stash pushed in one worktree can
+# be silently popped, dropped, or overwritten by a completely unrelated session
+# working in a different worktree of the same repo. `list`/`show` only read the
+# stack, so they're safe; everything else (bare `stash`, push, save, pop, apply,
+# drop, clear, branch) is blocked in favor of a WIP commit on a scratch branch,
+# which isn't shared mutable state.
+STASH_LINES=$(echo "$SPLIT_LINES" | grep -E 'git\s+stash\b' || true)
+if [ -n "$STASH_LINES" ]; then
+  UNSAFE_STASH=$(echo "$STASH_LINES" | grep -vE 'git\s+stash\s+(list|show)\b' || true)
+  if [ -n "$UNSAFE_STASH" ]; then
+    echo "BLOCKED: git stash is unsafe on repos with worktrees -- refs/stash is shared across every worktree of a repo, not scoped to the one you ran it from. Another session's stash command can silently consume or clobber this one. Use a WIP commit on a scratch branch instead (git commit -m 'wip'), or ask the user before proceeding." >&2
+    exit 2
+  fi
 fi
 
 # Block push to main/master — any remote name and flags before the branch, +refspec prefix,
