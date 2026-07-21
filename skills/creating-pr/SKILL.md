@@ -19,6 +19,11 @@ Create a PR with proper Jira ticket linking, then monitor CI until it's ready fo
 
 Run the `finishing-work` skill first to ensure verification passes before creating the PR.
 
+**Sync with the base branch and confirm the branch merges cleanly — BEFORE creating the PR, not after.** Fetch and rebase onto the latest base (`git fetch origin && git rebase origin/<base>`). Base can move between when you branched and when you open the PR, so re-check even if it was clean earlier — a PR that conflicts with base wastes a review cycle and forces a rebase mid-review. If the rebase surfaces conflicts:
+- Resolve them, then **re-run full verification** — `git rebase --continue` does **not** run the pre-commit hooks, so lint/format/type/test go unchecked on the newly-merged state until you run them yourself.
+- Watch for generated files in the conflict set (e.g. next-intl `*.d.json.ts`): resolve the source, then let the generator produce the derived file rather than hand-merging it.
+- After pushing, confirm the PR reports `mergeable: MERGEABLE` (`gh pr view <n> --json mergeable`).
+
 ## Process
 
 ### 1. Run comprehensive PR review
