@@ -36,10 +36,13 @@ _CLOSING_PREFIX = re.compile(_CLOSING + r"\s*:?\s*$", re.IGNORECASE)
 # and followed by a word boundary.
 _BARE_REF = re.compile(r"(?<![\w./-])#(\d+)\b")
 
-# File references whose contents should also be scanned.
-_CAT_SUBST = re.compile(r"\$\(\s*cat\s+([^\s)]+)\s*\)")
-_BODY_FILE = re.compile(r"--body-file(?:=|\s+)([^\s\"']+)")
-_API_BODY_FILE = re.compile(r"body=@([^\s\"']+)")
+# File references whose contents should also be scanned. The optional ["']
+# before each captured path lets a quoted path (--body-file "notes.md") match;
+# without it the char class stops at the opening quote and the file is silently
+# left unscanned — a bare ref in it would slip through.
+_CAT_SUBST = re.compile(r"\$\(\s*cat\s+[\"']?([^\s\"')]+)")
+_BODY_FILE = re.compile(r"--body-file(?:=|\s+)[\"']?([^\s\"']+)")
+_API_BODY_FILE = re.compile(r"body=@[\"']?([^\s\"']+)")
 
 
 def is_github_write(cmd: str) -> bool:

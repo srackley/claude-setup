@@ -56,6 +56,22 @@ assert_allowed() {
     rm -f "$tmp"
 }
 
+@test "blocks bare #N via a double-quoted --body-file path" {
+    tmp=$(mktemp)
+    printf 'point #2 needs work\n' > "$tmp"
+    input=$(build_bash_input "gh pr comment 5 --body-file \"$tmp\"")
+    assert_blocked "$input"
+    rm -f "$tmp"
+}
+
+@test "blocks bare #N via a quoted body=@ path" {
+    tmp=$(mktemp)
+    printf 'see #3\n' > "$tmp"
+    input=$(build_bash_input "gh api repos/o/r/issues/1/comments -F body=@\"$tmp\"")
+    assert_blocked "$input"
+    rm -f "$tmp"
+}
+
 # --- Allowed forms ---
 
 @test "allows closing keyword Closes #N" {
