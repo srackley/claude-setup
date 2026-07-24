@@ -30,7 +30,18 @@ _API_BODY = re.compile(r"\bbody[=@]")
 
 # Closing keywords GitHub honors: close/closes/closed, fix/fixes/fixed, resolve/resolves/resolved.
 _CLOSING = r"(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)"
-_CLOSING_PREFIX = re.compile(_CLOSING + r"\s*:?\s*$", re.IGNORECASE)
+# The keyword must start on a word boundary, or a word merely ENDING in a stem
+# reads as a closing reference and lets a bare ref through: `bugfix #3`,
+# `prefix #1`, `suffix #2`, `hotfix #9` all end in fix/fixes.
+#
+# A leading non-word char is REQUIRED rather than optional (`(?:^|[^\w])`, or an
+# equivalent negative lookbehind). Both of those are satisfied at position 0 of
+# the *window* this is matched against — a 30-char slice, not the whole text — so
+# a stem sliced by the window edge (`bug|fix` + 27 spaces + a ref) would match
+# and be ALLOWED. Demanding the boundary char makes a window-sliced stem fail to
+# match, i.e. block, which is the safe bias for a guardrail. find_bare_refs()
+# stands a space in for the char when the window is the true start of the text.
+_CLOSING_PREFIX = re.compile(r"[^\w]" + _CLOSING + r"\s*:?\s*$", re.IGNORECASE)
 
 # A bare `#N`: not preceded by a repo-slug/word char (which would make it owner/repo#N),
 # and followed by a word boundary.
@@ -76,7 +87,13 @@ def gather_scan_text(cmd: str) -> str:
 def find_bare_refs(text: str):
     bad = []
     for m in _BARE_REF.finditer(text):
-        prefix = text[max(0, m.start() - 30):m.start()]
+        start = max(0, m.start() - 30)
+        prefix = text[start:m.start()]
+        # _CLOSING_PREFIX requires a boundary char before the keyword; when the
+        # window IS the start of the text there is no char to inspect, so stand a
+        # space in for it. That keeps a body opening with `Fixes #5` allowed.
+        if start == 0:
+            prefix = " " + prefix
         if _CLOSING_PREFIX.search(prefix):
             continue
         bad.append("#" + m.group(1))
