@@ -117,6 +117,15 @@ def _strip_quotes(path: str) -> str:
 def gather_scan_text(cmd: str) -> str:
     # The raw command already contains inline bodies (`-b "..."`, `-f body="..."`,
     # heredoc text), so scan it directly, then append any referenced file contents.
+    #
+    # This catches every ref appearing LITERALLY in the command, including one
+    # assigned to a variable before the gh call. The bound worth knowing: a ref the
+    # shell BUILDS at runtime is not caught, because what arrives here is the
+    # command text, not the expanded arguments — a command substitution, an
+    # arithmetic expansion, or a value read from a file none of the path patterns
+    # recognize all evade it. That is inherent to scanning a command string rather
+    # than a fixable gap, and it is accepted: this guards against an accidental
+    # mis-link, not a determined one.
     chunks = [cmd]
     paths = []
     for pat in (_CAT_SUBST, _BODY_FILE, _INPUT_FILE, _API_BODY_FILE):
