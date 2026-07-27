@@ -149,6 +149,108 @@ print(m.find_bare_refs("Fixes #5"))' "$HOOK"
     [ "$output" = "[]" ] || { echo "expected no bare refs, got: $output"; return 1; }
 }
 
+# --- The char before `#` must be a word char, matching GitHub's own boundary ---
+#
+# GitHub suppresses autolinking only when a ref is glued to a word character.
+# Punctuation does not suppress it, so these still autolink into the current repo
+# even though the text names no repo. Verified against GitHub's Markdown API
+# (POST /markdown, mode gfm), not assumed.
+
+@test "blocks a ref preceded by a dot" {
+    input=$(build_bash_input 'gh pr create --title x --body "see foo.#42"')
+    assert_blocked "$input"
+}
+
+@test "blocks a ref preceded by a slash that is not a real slug" {
+    input=$(build_bash_input 'gh pr create --title x --body "see foo/#42"')
+    assert_blocked "$input"
+}
+
+@test "blocks a ref preceded by a hyphen" {
+    input=$(build_bash_input 'gh pr create --title x --body "see foo-#42"')
+    assert_blocked "$input"
+}
+
+@test "blocks a ref preceded by a dotted version" {
+    input=$(build_bash_input 'gh pr create --title x --body "shipped in v1.2.#42"')
+    assert_blocked "$input"
+}
+
+@test "allows a ref glued to a word char, which GitHub renders as plain text" {
+    input=$(build_bash_input 'gh pr create --title x --body "alice#42 match3#99 pt#3"')
+    assert_allowed "$input"
+}
+
+# --- Command-position shapes that must still be recognized as a write ---
+#
+# A missed shape does not degrade the scan, it skips the hook entirely.
+
+@test "fires on an env-var-prefixed write" {
+    input=$(build_bash_input 'GH_TOKEN=x gh pr create --title x --body "see point #3"')
+    assert_blocked "$input"
+}
+
+@test "fires on a time-prefixed write" {
+    input=$(build_bash_input 'time gh pr create --title x --body "see point #3"')
+    assert_blocked "$input"
+}
+
+@test "fires on a write inside a then-clause" {
+    input=$(build_bash_input 'if true; then gh pr create --title x --body "see point #3"; fi')
+    assert_blocked "$input"
+}
+
+@test "fires on a write inside a brace group" {
+    input=$(build_bash_input '{ gh pr create --title x --body "see point #3"; }')
+    assert_blocked "$input"
+}
+
+@test "fires on a write invoked through xargs" {
+    input=$(build_bash_input 'echo 5 | xargs -I{} gh pr comment {} --body "see point #3"')
+    assert_blocked "$input"
+}
+
+@test "fires on gh pr merge carrying a body" {
+    input=$(build_bash_input 'gh pr merge 5 --squash --body "see point #3"')
+    assert_blocked "$input"
+}
+
+@test "fires on gh release create carrying notes" {
+    input=$(build_bash_input 'gh release create v1.0.0 --notes "see point #3"')
+    assert_blocked "$input"
+}
+
+@test "ignores gh pr merge with no body flag" {
+    input=$(build_bash_input 'gh pr merge 5 --squash --delete-branch')
+    assert_allowed "$input"
+}
+
+@test "fires on gh pr edit" {
+    input=$(build_bash_input 'gh pr edit 5 --body "see point #3"')
+    assert_blocked "$input"
+}
+
+@test "fires on gh issue edit" {
+    input=$(build_bash_input 'gh issue edit 5 --body "see point #3"')
+    assert_blocked "$input"
+}
+
+@test "fires on gh pr review" {
+    input=$(build_bash_input 'gh pr review 5 --comment --body "see point #3"')
+    assert_blocked "$input"
+}
+
+# --- Payload shapes must not produce a traceback ---
+
+@test "allows rather than crashes when tool_input is not an object" {
+    # Only exit 2 blocks, so a traceback exits non-2 and the tool proceeds anyway.
+    # Exiting 0 deliberately: a payload this malformed carries no command to guard,
+    # and blocking would wedge every unrelated Bash call.
+    run bash -c 'printf "%s" "$2" | python3 "$1"' _ "$HOOK" '{"tool_name":"Bash","tool_input":"oops"}'
+    [ "$status" -eq 0 ] || { echo "expected 0, got $status: $output"; return 1; }
+    [[ "$output" != *"Traceback"* ]] || { echo "leaked a traceback: $output"; return 1; }
+}
+
 # --- Out of scope: not a GitHub write ---
 
 @test "ignores non-gh commands containing #N" {
