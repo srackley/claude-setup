@@ -51,15 +51,25 @@ Invoke the `verifying` skill. It handles running the project's full verification
 
 **Do not skip this step.** Do not proceed to commit until all pass.
 
-### 4. Commit with evidence
+### 4. Commit
 
-Only after verification pass, commit with actual output:
+Only commit after verification passes.
+
+**Report the result in chat**, with real counts — never "green" or "all passing"
+without numbers:
 
 ```
-lint: ✓
-types: ✓
-tests: 52/52 passed
+lint: ✓  types: ✓  tests: 2026/2026 passed
 ```
+
+**The commit message contains exactly three things:** the conventional-commit
+subject, a body explaining why the change is what it is, and any trailers the
+project requires (`Co-Authored-By`, `Closes #N`). Verification output is not one
+of them — it gates the commit, it isn't recorded by it.
+
+Before trusting "CI will catch it," confirm CI runs for this change. Workflows
+filtered to `branches: [main]` do not run on a stacked PR based on another
+branch.
 
 ## Documentation Preferences
 
