@@ -83,6 +83,8 @@ Find issues linked to this PR (check PR body, branch name, commit messages for `
 
 **Body:** Follow the repo's PR template if one exists (check `.github/PULL_REQUEST_TEMPLATE.md`). Be honest with checklists — never check off items you didn't actually do.
 
+**The body never carries verification output.** No lint/types/test counts, no "all tests pass locally", no "verified after rebasing onto main". The PR's own checks report that live, and a number typed into the body is wrong the moment anyone pushes. This holds when you have just run the suite and the count is sitting in front of you — that is the moment it feels most worth writing down, and it is still the wrong place. Ticking the template's "tests pass locally" box is the whole record; do not restate it in prose.
+
 **Issue linking:** Include a `Closes #NNN` line for the related GitHub issue. Use `Related to #NNN` instead when the issue tracks a multi-PR feature with known follow-on work (e.g. E2E tests still pending). GitHub auto-closes on merge for `Closes`; `Related to` just links.
 
 **Checklist verification:** Before submitting, re-read each checklist item and ask "did I literally do this?" If the answer isn't a clear yes, leave the box unchecked and add `(N/A)` with a brief reason. A false checkmark is worse than an unchecked box.

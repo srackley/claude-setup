@@ -64,8 +64,13 @@ lint: ✓  types: ✓  tests: 2026/2026 passed
 
 **The commit message contains exactly three things:** the conventional-commit
 subject, a body explaining why the change is what it is, and any trailers the
-project requires (`Co-Authored-By`, `Closes #N`). Verification output is not one
-of them — it gates the commit, it isn't recorded by it.
+project requires (`Co-Authored-By`, `Closes #N`).
+
+**Chat is the only destination for the counts.** They gate the work; nothing
+durable records them. Not the commit message, not the PR description, not a
+review comment — each of those is read long after the numbers stop being true,
+and the repo's CI checks already report the live result. Finding a stale count
+already written into a PR body means deleting the line, not updating the digits.
 
 Before trusting "CI will catch it," confirm CI runs for this change. Workflows
 filtered to `branches: [main]` do not run on a stacked PR based on another
