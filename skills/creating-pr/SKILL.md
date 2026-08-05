@@ -1,6 +1,6 @@
 ---
 name: creating-pr
-description: Use when creating a pull request, and whenever writing, rewriting, or replacing a PR description — including the body of a PR that already exists
+description: Use when creating a pull request
 ---
 
 # Creating a Pull Request
@@ -14,7 +14,6 @@ Create a PR with proper Jira ticket linking, then monitor CI until it's ready fo
 - User asks to "create a PR" or "open a PR"
 - User says "let's get this merged" or similar
 - After completing work on a feature branch
-- **Whenever a PR body is about to be written or replaced** — `gh pr create --body*`, `gh pr edit --body*`/`--body-file`, or any request to fix, tighten, or rewrite a description. "Creating a PR" is not the trigger; producing the body is. A PR that already exists is the case that most needs this skill and least looks like it: the existing text is right there to revise, so the template never gets opened.
 
 ## Prerequisites
 
@@ -83,10 +82,6 @@ Find issues linked to this PR (check PR body, branch name, commit messages for `
 - If no ticket: `Description of change` (no brackets)
 
 **Body:** Follow the repo's PR template if one exists (check `.github/PULL_REQUEST_TEMPLATE.md`). Be honest with checklists — never check off items you didn't actually do.
-
-Read the template before writing a line of body, including when a body already exists. Rebuild against the template's headings rather than revising the text in place: an existing body is not evidence of the right shape, and headings inherited from whoever wrote it first will survive every local improvement you make.
-
-**The body describes the end state, not how the change got there.** What it does now and what a reviewer should look at — not what was tried and abandoned, which approach came first, or which earlier claim turned out wrong. That belongs in commit messages, or in the docs when the rejected approach is worth warning the next person about; from the body, point at the doc in one line. Rejected alternatives are the tell: if a section describes something absent from the diff, it is a changelog of your reasoning, not a description of the change.
 
 **The body never carries verification output.** No lint/types/test counts, no "all tests pass locally", no "verified after rebasing onto main". The PR's own checks report that live, and a number typed into the body is wrong the moment anyone pushes. This holds when you have just run the suite and the count is sitting in front of you — that is the moment it feels most worth writing down, and it is still the wrong place. Ticking the template's "tests pass locally" box is the whole record; do not restate it in prose.
 
