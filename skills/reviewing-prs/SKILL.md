@@ -76,14 +76,22 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments
 
 ```bash
 REPO_ROOT=$(git rev-parse --show-toplevel)
-git worktree add "$REPO_ROOT/.worktrees/pr-<number>-review" origin/<pr-branch>
+git worktree add "$REPO_ROOT/.claude/worktrees/pr-<number>-review" origin/<pr-branch>
 ```
+
+`.claude/worktrees/` is the native worktree location — already gitignored and in ESLint's `globalIgnores`, so a review checkout can't leak into `git status` or hang a lint run. Do not use `.worktrees/`; a repo that has both treats it as the deprecated one. Check `eslint.config.mjs` if unsure which the repo uses.
+
+`EnterWorktree` is the preferred worktree tool generally, but not here: it creates a worktree **on a new branch** off the default branch, and a review needs the PR author's branch checked out. Use `git worktree add` with an explicit ref, as above.
 
 All agents must receive the absolute worktree path and be told to read files from there. After the review is posted, clean up:
 
 ```bash
-git worktree remove "$REPO_ROOT/.worktrees/pr-<number>-review"
+git worktree remove "$REPO_ROOT/.claude/worktrees/pr-<number>-review"
 ```
+
+**Run every verification command from inside the worktree, and confirm it landed there.** The shell's working directory persists between calls, but a `cd` inside a compound command may not — so a test or lint run can silently execute against the main checkout and report on the wrong code. Confirm against the runner's own echoed root (Vitest prints `RUN v… <root>`) rather than assuming.
+
+**After moving an existing review worktree to a newer commit, don't trust the first full-suite run.** The worktree carries its own `node_modules/.vite`, which can serve results from the previous commit. Cross-check one file's test count against the source before reporting any suite numbers.
 
 ## Step 4: Gather Context
 
