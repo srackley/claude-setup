@@ -257,6 +257,10 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/no-bare-issue-refs.py"
+        },
+        {
+          "type": "command",
+          "command": "~/.claude/hooks/no-process-narration.py"
           }
         ]
       },
